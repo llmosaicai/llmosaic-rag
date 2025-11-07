@@ -1,0 +1,11 @@
+llmosaic-db:
+  org: example
+  pgadmin:
+    enabled: false
+
+rag:
+  llmapi:
+    baseUrl: https://llmapi6.llmosaic.ai
+
+jupyterlab:
+  enabled: true

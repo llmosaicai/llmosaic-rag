@@ -1,0 +1,10 @@
+apiVersion: v2
+name: llmosaic-rag
+description: RAG umbrella chart layered on llmosaic-db, with llmapi integration
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: llmosaic-db
+    version: 0.1.0
+    repository: "file://../../llmosaic-db/chart/llmosaic-db"

@@ -1,0 +1,7 @@
+This chart deploys the llmosaic-db subchart and prepares integration values for
+RAG scenarios using the LLMosaic LLM API.
+
+Install with:
+
+  helm upgrade --install llmosaic-rag ./chart/llmosaic-rag -n <ns> -f ./starter/values.yaml
+

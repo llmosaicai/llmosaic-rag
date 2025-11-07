@@ -1,0 +1,43 @@
+name: release-chart
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  package-and-push:
+    runs-on: ubuntu-latest
+    env:
+      HELM_EXPERIMENTAL_OCI: 1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set VERSION from tag
+        id: v
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          ver="${ref#v}"
+          echo "version=$ver" >> $GITHUB_OUTPUT
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.4
+      - name: Rewrite dependency to OCI (for release)
+        run: |
+          sed -i 's#repository: \"file://\./\./\./\./llmosaic-db/chart/llmosaic-db\"#repository: oci://ghcr.io/llmosaicai/charts#' chart/llmosaic-rag/Chart.yaml || true
+          sed -i 's#repository: \"file://\./\./llmosaic-db/chart/llmosaic-db\"#repository: oci://ghcr.io/llmosaicai/charts#' chart/llmosaic-rag/Chart.yaml || true
+          sed -i "s/^\([[:space:]]*version:\).*/\1 ${{ steps.v.outputs.version }}/" chart/llmosaic-rag/Chart.yaml
+      - name: Helm dep up
+        run: helm dependency update chart/llmosaic-rag
+      - name: Login to GHCR
+        run: echo ${{ secrets.GITHUB_TOKEN }} | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Package chart
+        run: helm package chart/llmosaic-rag --version ${{ steps.v.outputs.version }} --app-version ${{ steps.v.outputs.version }}
+      - name: Push to GHCR
+        run: |
+          FILE=$(ls llmosaic-rag-*.tgz)
+          helm push "$FILE" oci://ghcr.io/llmosaicai/charts
+
