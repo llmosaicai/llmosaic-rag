@@ -29,3 +29,15 @@ jupyterlab:
     size: 5Gi
   hostTemplate: "jupyter-{{ .Values.llmosaic-db.org }}.tenants.llmosaic.ai"
   envFromSecrets: []
+
+# Egress policy controls for RAG components (e.g., Jupyter)
+# - When restricted=false (default), the chart does not install namespace-wide
+#   egress policies that would implicitly restrict all pods. Egress remains open
+#   unless constrained by additional NetworkPolicies.
+# - When restricted=true, the chart scopes DNS egress and optionally allows
+#   JupyterLab to reach common internet ports (443/80) so extensions and
+#   external services work.
+egress:
+  restricted: false
+  # Only used when restricted=true
+  internetForJupyter: true

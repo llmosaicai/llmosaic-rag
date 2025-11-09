@@ -1,0 +1,53 @@
+{{- if .Values.egress.restricted }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-egress
+  labels:
+    app.kubernetes.io/part-of: llmosaic-rag
+spec:
+  # Scope DNS egress to pods that actually resolve names; do NOT select all pods
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: ["jupyterlab","oauth2-proxy"]
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+{{- if and .Values.jupyterlab.enabled .Values.egress.internetForJupyter }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress-jupyterlab-to-internet-https
+  labels:
+    app.kubernetes.io/part-of: llmosaic-rag
+spec:
+  podSelector:
+    matchLabels:
+      app: jupyterlab
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+{{- end }}
+{{- end }}
+
