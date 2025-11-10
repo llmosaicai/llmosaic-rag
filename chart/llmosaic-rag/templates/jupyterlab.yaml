@@ -54,6 +54,11 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/jovyan/work
+          env:
+            {{- if .Values.jupyterlab.sso.enabled }}
+            - name: NOTEBOOK_ARGS
+              value: "--ServerApp.token='' --ServerApp.password=''"
+            {{- end }}
           envFrom:
           {{- range $s := .Values.jupyterlab.envFromSecrets | default (list) }}
             - secretRef:
@@ -86,8 +91,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: jupyterlab
+                name: {{ if .Values.jupyterlab.sso.enabled }}oauth2-proxy{{ else }}jupyterlab{{ end }}
                 port:
-                  number: 8888
+                  number: {{ if .Values.jupyterlab.sso.enabled }}4180{{ else }}8888{{ end }}
 {{- end }}
-
