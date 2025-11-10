@@ -29,6 +29,15 @@ jupyterlab:
     size: 5Gi
   hostTemplate: "jupyter-{{ .Values.llmosaic-db.org }}.tenants.llmosaic.ai"
   envFromSecrets: []
+  sso:
+    enabled: false
+    # OIDC issuer (backend discovery base)
+    issuerUrl: ""
+    # Reference to Secret with keys: CLIENT_ID, CLIENT_SECRET, COOKIE_SECRET
+    secretRef:
+      name: jupyter-oidc
+    # Extra oauth2-proxy args (e.g., ["--cookie-expire=8h","--cookie-refresh=30m"]) 
+    extraArgs: []
 
 # Egress policy controls for RAG components (e.g., Jupyter)
 # - When restricted=false (default), the chart does not install namespace-wide
