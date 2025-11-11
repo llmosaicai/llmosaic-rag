@@ -77,6 +77,9 @@ metadata:
   name: jupyterlab
   annotations:
     kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
+    {{- if .Values.jupyterlab.ingress.middlewares }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{ join "," .Values.jupyterlab.ingress.middlewares | quote }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className | quote }}
   tls:

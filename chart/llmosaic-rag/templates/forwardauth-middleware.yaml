@@ -1,0 +1,15 @@
+{{- if .Values.sso.forwardAuth.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ .Values.sso.forwardAuth.name | default "oauth2-forwardauth" | quote }}
+  labels:
+    app: oauth2-forwardauth
+spec:
+  forwardAuth:
+    address: "http://oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:4180/oauth2/auth"
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email
+{{- end }}
