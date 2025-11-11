@@ -16,7 +16,7 @@ rag:
 
 # Optional JupyterLab (moved from db stack)
 jupyterlab:
-  enabled: false
+  enabled: true
   image: jupyter/minimal-notebook:python-3.11
   resources:
     requests:
@@ -32,7 +32,7 @@ jupyterlab:
   ingress:
     middlewares: []
   sso:
-    enabled: false
+    enabled: true
     # OIDC issuer (backend discovery base)
     issuerUrl: ""
     # Reference to Secret with keys: CLIENT_ID, CLIENT_SECRET, COOKIE_SECRET
