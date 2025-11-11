@@ -36,7 +36,7 @@ spec:
           imagePullPolicy: IfNotPresent
           args:
             - --provider=oidc
-            - --oidc-issuer-url={{ required "jupyterlab.sso.issuerUrl required" .Values.jupyterlab.sso.issuerUrl | quote }}
+            - --oidc-issuer-url={{ required "jupyterlab.sso.issuerUrl required" .Values.jupyterlab.sso.issuerUrl }}
             - --redirect-url=https://{{ tpl (.Values.jupyterlab.hostTemplate | default (print "jupyter-" (index .Values "llmosaic-db").org ".tenants.llmosaic.ai")) . }}/oauth2/callback
             - --client-id=$(CLIENT_ID)
             - --client-secret=$(CLIENT_SECRET)
