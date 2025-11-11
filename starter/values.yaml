@@ -1,7 +1,7 @@
 llmosaic-db:
   org: example
   pgadmin:
-    enabled: false
+    enabled: true
 
 rag:
   llmapi:
