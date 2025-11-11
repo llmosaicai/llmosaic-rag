@@ -27,7 +27,7 @@ jupyterlab:
       memory: 2Gi
   pvc:
     size: 5Gi
-  hostTemplate: "jupyter-{{ .Values.llmosaic-db.org }}.tenants.llmosaic.ai"
+  hostTemplate: "jupyter-{{ (index .Values \"llmosaic-db\").org }}.tenants.llmosaic.ai"
   envFromSecrets: []
   ingress:
     middlewares: []

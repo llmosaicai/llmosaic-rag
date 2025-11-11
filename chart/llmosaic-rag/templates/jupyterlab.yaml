@@ -84,10 +84,10 @@ spec:
   ingressClassName: {{ .Values.ingress.className | quote }}
   tls:
     - hosts:
-        - {{ tpl (.Values.jupyterlab.hostTemplate | default (print "jupyter-" .Values.llmosaic-db.org ".tenants.llmosaic.ai")) . | quote }}
+        - {{ tpl (.Values.jupyterlab.hostTemplate | default (print "jupyter-" (index .Values "llmosaic-db").org ".tenants.llmosaic.ai")) . | quote }}
       secretName: {{ .Values.ingress.secretName | default "tenant-combined-tls" | quote }}
   rules:
-    - host: {{ tpl (.Values.jupyterlab.hostTemplate | default (print "jupyter-" .Values.llmosaic-db.org ".tenants.llmosaic.ai")) . | quote }}
+    - host: {{ tpl (.Values.jupyterlab.hostTemplate | default (print "jupyter-" (index .Values "llmosaic-db").org ".tenants.llmosaic.ai")) . | quote }}
       http:
         paths:
           - path: /
