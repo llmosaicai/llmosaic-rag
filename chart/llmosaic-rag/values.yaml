@@ -29,6 +29,8 @@ jupyterlab:
     size: 5Gi
   hostTemplate: "jupyter-{{ .Values.llmosaic-db.org }}.tenants.llmosaic.ai"
   envFromSecrets: []
+  ingress:
+    middlewares: []
   sso:
     enabled: false
     # OIDC issuer (backend discovery base)
@@ -38,6 +40,13 @@ jupyterlab:
       name: jupyter-oidc
     # Extra oauth2-proxy args (e.g., ["--cookie-expire=8h","--cookie-refresh=30m"]) 
     extraArgs: []
+
+# Optional Traefik ForwardAuth middleware for non-OIDC services (uses oauth2-proxy auth endpoint)
+sso:
+  forwardAuth:
+    enabled: false
+    # Name for the tenant-scoped Middleware (created when enabled)
+    name: oauth2-forwardauth
 
 # Egress policy controls for RAG components (e.g., Jupyter)
 # - When restricted=false (default), the chart does not install namespace-wide
@@ -50,3 +59,9 @@ egress:
   restricted: false
   # Only used when restricted=true
   internetForJupyter: true
+deps:
+  llmosaic_db:
+    repo_url: "https://github.com/llmosaicai/llmosaic-db"
+    repo_ref: "main"
+    chart_path: "chart/llmosaic-db"
+    vendor: true
