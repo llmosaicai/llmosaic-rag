@@ -11,6 +11,7 @@ spec:
       containers:
         - name: seed
           image: {{ .Values.rag.examples.image | quote }}
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh","-c"]
           args:
             - |

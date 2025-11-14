@@ -4,8 +4,16 @@ llmosaic-db:
     enabled: true
 
 rag:
+  examples:
+    enabled: true
+    source: image
+    image: 148.153.46.195:30500/rag-examples:film-v2
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
 
 jupyterlab:
   enabled: true
+  preload:
+    enabled: true
+    source: image
+    image: 148.153.46.195:30500/rag-examples:film-v2

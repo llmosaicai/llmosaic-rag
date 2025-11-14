@@ -78,34 +78,34 @@
         }
       },
       "additionalProperties": true
-    }
-  },
-  "rag": {
-    "type": "object",
-    "properties": {
-      "examples": {
-        "type": "object",
-        "properties": {
-          "enabled": { "type": "boolean" },
-          "source": { "type": "string", "enum": ["configmap","image","remote"] },
-          "image": { "type": "string" },
-          "files": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "name": { "type": "string" },
-                "content": { "type": "string" }
-              },
-              "required": ["name","content"],
-              "additionalProperties": false
-            }
-          }
-        },
-        "additionalProperties": false
-      }
     },
-    "additionalProperties": true
+    "rag": {
+      "type": "object",
+      "properties": {
+        "examples": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "source": { "type": "string", "enum": ["configmap","image","remote"] },
+            "image": { "type": "string" },
+            "files": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "content": { "type": "string" }
+                },
+                "required": ["name","content"],
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    }
   },
   "additionalProperties": true
 }
