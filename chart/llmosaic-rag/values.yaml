@@ -13,11 +13,24 @@ rag:
     secretRef:
       name: rag-llmapi
       key: API_KEY
+  # Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
+  examples:
+    enabled: true
+    # Use an OCI image to seed /artifacts from /assets inside the image
+    source: image  # image|configmap|remote
+    image: 148.153.46.195:30500/rag-examples:film-v2
+    # For small files, you can also embed directly via configmap
+    files: []
 
 # Optional JupyterLab (moved from db stack)
 jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
+  preload:
+    enabled: true
+    source: image   # image|inline
+    image: 148.153.46.195:30500/rag-examples:film-v2
+    notebooks: []   # used when source=inline (small content)
   resources:
     requests:
       cpu: 250m
@@ -59,6 +72,7 @@ egress:
   restricted: false
   # Only used when restricted=true
   internetForJupyter: true
+
 deps:
   llmosaic_db:
     repo_url: "https://github.com/llmosaicai/llmosaic-db"

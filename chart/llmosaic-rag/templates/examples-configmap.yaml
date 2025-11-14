@@ -1,0 +1,11 @@
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "configmap")) "configmap") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-examples
+data:
+{{- range $f := .Values.rag.examples.files | default (list) }}
+  {{ $f.name | quote }}: |
+{{ $f.content | indent 4 }}
+{{- end }}
+{{- end }}

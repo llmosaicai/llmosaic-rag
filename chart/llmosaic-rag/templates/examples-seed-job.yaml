@@ -1,0 +1,37 @@
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "configmap")) "configmap") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-examples-seed
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: alpine:3.19
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+              echo "Seeding examples into /artifacts…"
+              mkdir -p /artifacts
+              for f in /cm/*; do
+                base=$(basename "$f")
+                cp -f "$f" "/artifacts/$base"
+              done
+              ls -l /artifacts
+          volumeMounts:
+            - name: artifacts
+              mountPath: /artifacts
+            - name: cm
+              mountPath: /cm
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: proxy-artifacts
+        - name: cm
+          configMap:
+            name: rag-examples
+{{- end }}
