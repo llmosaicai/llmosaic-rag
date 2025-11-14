@@ -18,6 +18,9 @@ rag:
 jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
+  preload:
+    enabled: false
+    notebooks: []
   resources:
     requests:
       cpu: 250m
@@ -59,6 +62,14 @@ egress:
   restricted: false
   # Only used when restricted=true
   internetForJupyter: true
+
+# Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
+rag:
+  examples:
+    enabled: false
+    # When source=configmap, we generate a ConfigMap with file entries (small files only)
+    source: configmap  # configmap|image|remote (only configmap supported in this patch)
+    files: []
 deps:
   llmosaic_db:
     repo_url: "https://github.com/llmosaicai/llmosaic-db"

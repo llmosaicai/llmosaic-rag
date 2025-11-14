@@ -41,6 +41,27 @@ spec:
       labels:
         app: jupyterlab
     spec:
+      initContainers:
+        {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (gt (len (.Values.jupyterlab.preload.notebooks | default (list))) 0) }}
+        - name: preload-notebooks
+          image: alpine:3.19
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+              mkdir -p /preload && mkdir -p /home/jovyan/examples
+              {{- range $i, $f := .Values.jupyterlab.preload.notebooks }}
+              cat >/preload/{{ $f.name | quote }} <<'EOF_{{ $i }}'
+{{ $f.content | nindent 0 }}
+EOF_{{ $i }}
+              install -D -m 0644 /preload/{{ $f.name }} {{ $f.destPath }}
+              {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /home/jovyan/work
+            - name: home
+              mountPath: /home/jovyan
+        {{- end }}
       securityContext:
         runAsNonRoot: true
         seccompProfile:
@@ -70,6 +91,8 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: jupyterlab-data
+        - name: home
+          emptyDir: {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
