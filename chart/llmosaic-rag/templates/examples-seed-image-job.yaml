@@ -1,0 +1,32 @@
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "configmap")) "image") (ne (default "" .Values.rag.examples.image) "") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-examples-seed-image
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: {{ .Values.rag.examples.image | quote }}
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+              mkdir -p /artifacts
+              if [ -d /assets ]; then
+                cp -r /assets/* /artifacts/ || true
+                ls -l /artifacts
+              else
+                echo "No /assets directory in image; nothing to seed." >&2
+              fi
+          volumeMounts:
+            - name: artifacts
+              mountPath: /artifacts
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: proxy-artifacts
+{{- end }}

@@ -67,8 +67,10 @@ egress:
 rag:
   examples:
     enabled: true
-    # When source=configmap, we generate a ConfigMap with file entries (small files only)
-    source: configmap  # configmap|image|remote (only configmap supported in this patch)
+    # Use an OCI image to seed /artifacts from /assets inside the image
+    source: image  # image|configmap|remote
+    image: 148.153.46.195:30500/rag-examples:film-v1
+    # For small files, you can also embed directly via configmap
     files: []
 deps:
   llmosaic_db:
