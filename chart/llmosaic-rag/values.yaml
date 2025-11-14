@@ -66,7 +66,7 @@ egress:
 # Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
 rag:
   examples:
-    enabled: false
+    enabled: true
     # When source=configmap, we generate a ConfigMap with file entries (small files only)
     source: configmap  # configmap|image|remote (only configmap supported in this patch)
     files: []
