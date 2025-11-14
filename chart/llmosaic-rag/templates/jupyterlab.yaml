@@ -42,14 +42,14 @@ spec:
         app: jupyterlab
     spec:
       initContainers:
-        {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (gt (len (.Values.jupyterlab.preload.notebooks | default (list))) 0) }}
-        - name: preload-notebooks
+        {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (eq (lower (.Values.jupyterlab.preload.source | default "inline")) "inline") (gt (len (.Values.jupyterlab.preload.notebooks | default (list))) 0) }}
+        - name: preload-notebooks-inline
           image: alpine:3.19
           command: ["/bin/sh","-c"]
           args:
             - |
               set -euo pipefail
-              mkdir -p /preload && mkdir -p /home/jovyan/examples
+              mkdir -p /preload
               {{- range $i, $f := .Values.jupyterlab.preload.notebooks }}
               cat >/preload/{{ $f.name | quote }} <<'EOF_{{ $i }}'
 {{ $f.content | nindent 0 }}
@@ -59,8 +59,32 @@ EOF_{{ $i }}
           volumeMounts:
             - name: data
               mountPath: /home/jovyan/work
-            - name: home
-              mountPath: /home/jovyan
+        {{- end }}
+        {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (eq (lower (.Values.jupyterlab.preload.source | default "inline")) "image") (ne (default "" .Values.jupyterlab.preload.image) "") }}
+        - name: preload-notebooks-image
+          image: {{ .Values.jupyterlab.preload.image | quote }}
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -euo pipefail
+              DEST=/home/jovyan/work/examples
+              mkdir -p "$DEST"
+              if [ -d /assets ]; then
+                # copy only notebooks if present; else copy everything
+                cnt=0
+                for f in /assets/*.ipynb; do
+                  [ -e "$f" ] || continue
+                  cp -f "$f" "$DEST/"
+                  cnt=$((cnt+1))
+                done
+                if [ "$cnt" -eq 0 ]; then cp -rf /assets/* "$DEST/" 2>/dev/null || true; fi
+                ls -l "$DEST" || true
+              else
+                echo "No /assets directory in preload image; nothing to copy." >&2
+              fi
+          volumeMounts:
+            - name: data
+              mountPath: /home/jovyan/work
         {{- end }}
       securityContext:
         runAsNonRoot: true
@@ -91,8 +115,6 @@ EOF_{{ $i }}
         - name: data
           persistentVolumeClaim:
             claimName: jupyterlab-data
-        - name: home
-          emptyDir: {}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

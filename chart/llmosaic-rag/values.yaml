@@ -20,7 +20,9 @@ jupyterlab:
   image: jupyter/minimal-notebook:python-3.11
   preload:
     enabled: false
-    notebooks: []
+    source: image   # image|inline
+    image: 148.153.46.195:30500/rag-examples:film-v1
+    notebooks: []   # used when source=inline (small content)
   resources:
     requests:
       cpu: 250m

@@ -37,6 +37,8 @@
           "type": "object",
           "properties": {
             "enabled": { "type": "boolean" },
+            "source": { "type": "string", "enum": ["inline","image"] },
+            "image": { "type": "string" },
             "notebooks": {
               "type": "array",
               "items": {
