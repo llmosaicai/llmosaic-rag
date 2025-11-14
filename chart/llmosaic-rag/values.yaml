@@ -19,9 +19,9 @@ jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
   preload:
-    enabled: false
+    enabled: true
     source: image   # image|inline
-    image: 148.153.46.195:30500/rag-examples:film-v1
+    image: 148.153.46.195:30500/rag-examples:film-v2
     notebooks: []   # used when source=inline (small content)
   resources:
     requests:
@@ -71,7 +71,7 @@ rag:
     enabled: true
     # Use an OCI image to seed /artifacts from /assets inside the image
     source: image  # image|configmap|remote
-    image: 148.153.46.195:30500/rag-examples:film-v1
+    image: 148.153.46.195:30500/rag-examples:film-v2
     # For small files, you can also embed directly via configmap
     files: []
 deps:

@@ -70,14 +70,8 @@ EOF_{{ $i }}
               DEST=/home/jovyan/work/examples
               mkdir -p "$DEST"
               if [ -d /assets ]; then
-                # copy only notebooks if present; else copy everything
-                cnt=0
-                for f in /assets/*.ipynb; do
-                  [ -e "$f" ] || continue
-                  cp -f "$f" "$DEST/"
-                  cnt=$((cnt+1))
-                done
-                if [ "$cnt" -eq 0 ]; then cp -rf /assets/* "$DEST/" 2>/dev/null || true; fi
+                # Copy all assets (notebooks, SQL fixtures, etc.) into examples
+                cp -rf /assets/* "$DEST/" 2>/dev/null || true
                 ls -l "$DEST" || true
               else
                 echo "No /assets directory in preload image; nothing to copy." >&2
