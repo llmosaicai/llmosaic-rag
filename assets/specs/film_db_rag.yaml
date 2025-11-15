@@ -1,0 +1,80 @@
+summary: |
+  Restore the classic Film DB dataset, prepare film texts, embed + insert into
+  a vector table, create a vector index, run semantic search, and chat using
+  the retrieved context.
+default_schema: public
+
+steps:
+  - id: health_check
+    title: Health Check
+    purpose: Verify the tenant PostgREST-Proxy is reachable and ready.
+    action: http_get
+    endpoint: /healthz
+
+  - id: restore_backup
+    title: Restore Film DB
+    purpose: Restore the film database from the preloaded SQL fixture.
+    action: http_get
+    endpoint: /restore-fixture?fixture=/artifacts/film_db_backup.sql
+
+  - id: prep_film_texts
+    title: Prepare Film Texts
+    purpose: Extract a small set of film descriptions for embedding.
+    action: http_get
+    endpoint: /film_list?limit=10
+
+  - id: drop_table
+    title: Drop Embeddings Table (if exists)
+    purpose: Ensure a clean state for the embeddings table.
+    action: drop_table
+    params:
+      table_name: film_embeddings
+
+  - id: create_table
+    title: Create Embeddings Table
+    purpose: Create a table to store film texts and embeddings.
+    action: create_table
+    params:
+      table_name: film_embeddings
+      not_exists: true
+      columns:
+        - { name: id, type: bigserial, constraints: PRIMARY KEY }
+        - { name: film_id, type: integer }
+        - { name: document_text, type: text }
+        - { name: embedding, type: vector(1024) }
+
+  - id: create_vector_index
+    title: Create Vector Index (HNSW)
+    purpose: Build a HNSW cosine index on the embedding column for fast similarity search.
+    action: create_vector_index
+    params:
+      table_name: film_embeddings
+      vector_column: embedding
+      index_type: hnsw
+      distance_operator: vector_cosine_ops
+
+  - id: embed_and_insert_films
+    title: Embed + Insert Films
+    purpose: Generate embeddings for selected film descriptions and insert rows.
+    action: embed_and_insert_films
+    params:
+      table_name: film_embeddings
+
+  - id: vector_query
+    title: Vector Query
+    purpose: Embed the query text and find the closest film by cosine distance.
+    action: vector_query
+    params:
+      table_name: film_embeddings
+      query_text: Adventure on the open sea with pirates
+      limit: 3
+
+  - id: chat_with_context
+    title: Chat with Retrieved Context
+    purpose: Call the chat model using the retrieved synopsis as grounding context.
+    action: chat_with_context
+    params:
+      template: |
+        Using the following film synopsis as context: "{{context}}", answer the question: "{{question}}"
+      question: Which characters are central to the story?
+
