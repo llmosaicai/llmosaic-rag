@@ -42,6 +42,23 @@ spec:
         app: jupyterlab
     spec:
       initContainers:
+        {{- if and .Values.jupyterlab.envDump .Values.jupyterlab.envDump.enabled }}
+        - name: write-env
+          image: alpine:3.19
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              set -euo pipefail
+              dest=/home/jovyan/work/.rag
+              mkdir -p "$dest"
+              {
+                printenv | grep -E '^(LLMAPI_BASE|LLMAPI_API_KEY|USER_EMAIL|STORAGE_ACCESS_KEY_ID|STORAGE_SECRET_ACCESS_KEY|PROXY_HOST|EMBED_NAME|EMBED_MODEL|LLM_NAME|LLM_MODEL|SCHEMA_NAME)='
+              } > "$dest/.env" || true
+              chmod 600 "$dest/.env" || true
+          volumeMounts:
+            - name: data
+              mountPath: /home/jovyan/work
+        {{- end }}
         {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (eq (lower (.Values.jupyterlab.preload.source | default "inline")) "inline") (gt (len (.Values.jupyterlab.preload.notebooks | default (list))) 0) }}
         - name: preload-notebooks-inline
           image: alpine:3.19
