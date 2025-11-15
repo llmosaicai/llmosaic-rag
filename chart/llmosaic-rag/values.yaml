@@ -18,7 +18,7 @@ rag:
     enabled: true
     # Use an OCI image to seed /artifacts from /assets inside the image
     source: image  # image|configmap|remote
-    image: 148.153.46.195:30500/rag-examples:film-v2
+    image: 148.153.46.195:30500/rag-examples:film-v3
     # For small files, you can also embed directly via configmap
     files: []
 
@@ -29,7 +29,7 @@ jupyterlab:
   preload:
     enabled: true
     source: image   # image|inline
-    image: 148.153.46.195:30500/rag-examples:film-v2
+    image: 148.153.46.195:30500/rag-examples:film-v3
     notebooks: []   # used when source=inline (small content)
   resources:
     requests:
