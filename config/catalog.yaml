@@ -1,0 +1,131 @@
+version: 1
+stack_key: llmosaic-rag
+description: >-
+  Configuration variables required by the llmosaic-rag stack (umbrella over llmosaic-db),
+  including whether they are secrets and whether they can be auto-populated. This catalog
+  is used by the frontend to present a profile editor and by the provisioner to render
+  Secrets and Helm overrides.
+
+variables:
+  # ---- Notebook and Proxy wiring ----
+  - name: PROXY_HOST
+    description: FQDN for the tenant PostgREST-Proxy ingress (used to form PROXY_BASE).
+    secret: false
+    auto: true
+    source:
+      type: chart_computed
+      note: Derived from llmosaic-db.ingress.hostTemplate or proxy.host for this tenant.
+    inject:
+      write_env: true
+      containers:
+        - name: jupyterlab
+          env: PROXY_HOST
+
+  - name: SCHEMA_NAME
+    description: PostgreSQL schema to use for RAG tables.
+    secret: false
+    auto: true
+    default: public
+    inject:
+      write_env: true
+
+  # ---- LLM API access ----
+  - name: LLMAPI_BASE
+    description: Base URL for the LLM API gateway (embed + chat endpoints).
+    secret: false
+    auto: true
+    source:
+      type: values
+      path: rag.llmapi.baseUrl
+    inject:
+      write_env: true
+      containers:
+        - name: jupyterlab
+          env: LLMAPI_BASE
+
+  - name: LLMAPI_API_KEY
+    description: API key for the LLM API gateway.
+    secret: true
+    auto: true
+    source:
+      type: backend
+      key: user_llm_api_key
+    k8s:
+      secretRef:
+        name: rag-llmapi
+        key: API_KEY
+    inject:
+      write_env: true
+      envFromSecrets:
+        - rag-llmapi
+
+  - name: EMBED_NAME
+    description: Embedding provider route (e.g., titan-embed-text-v2);
+    secret: false
+    auto: true
+    default: titan-embed-text-v2
+    inject:
+      write_env: true
+
+  - name: EMBED_MODEL
+    description: Embedding model identifier used by the LLM API.
+    secret: false
+    auto: true
+    default: titan-embed-text-v2
+    inject:
+      write_env: true
+
+  - name: LLM_NAME
+    description: Chat provider route (e.g., gpt-oss-120b).
+    secret: false
+    auto: true
+    default: gpt-oss-120b
+    inject:
+      write_env: true
+
+  - name: LLM_MODEL
+    description: Chat model identifier used by the LLM API.
+    secret: false
+    auto: true
+    default: gpt-oss-120b
+    inject:
+      write_env: true
+
+  # ---- User storage access (used by PostgREST-Proxy auth for notebook flows) ----
+  - name: STORAGE_ACCESS_KEY_ID
+    description: User access key id for the storage gateway (Mosaic-style access keys).
+    secret: false
+    auto: true
+    source:
+      type: backend
+      key: user_storage_key_id
+    k8s:
+      secretRef:
+        name: rag-proxy-auth
+        key: STORAGE_ACCESS_KEY_ID
+    inject:
+      write_env: true
+      envFromSecrets:
+        - rag-proxy-auth
+
+  - name: STORAGE_SECRET_ACCESS_KEY
+    description: User storage secret access key.
+    secret: true
+    auto: true
+    source:
+      type: backend
+      key: user_storage_key_secret
+    k8s:
+      secretRef:
+        name: rag-proxy-auth
+        key: STORAGE_SECRET_ACCESS_KEY
+    inject:
+      write_env: true
+      envFromSecrets:
+        - rag-proxy-auth
+
+notes:
+  - The provisioner should auto-populate chart values and Secrets according to this catalog
+    when a config profile is selected during deployment creation.
+  - The Jupyter write-env init container writes a filtered subset into /home/jovyan/work/.rag/.env.
+
