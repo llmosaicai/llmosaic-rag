@@ -69,7 +69,7 @@ r = requests.get(url, headers={hdr})
 print(r.status_code)
 print(r.text[:2000])
 """
-        ").format(endpoint=endpoint, hdr=hdr)
+        ).format(endpoint=endpoint, hdr=hdr)
 
     if act == 'drop_table':
         table = p.get('table_name', 'items5')
@@ -160,7 +160,7 @@ try:
         ctx = first.get('data', {{}}).get('text') or first.get('document_text') or ''
 except Exception:
     pass
-prompt = """{template}""".replace("{{context}}", ctx).replace("{{question}}", "{question}")
+prompt = ("{template}").replace("{{context}}", ctx).replace("{{question}}", "{question}")
 cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_MODEL, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
 print(cr.status_code)
 print(cr.text)
@@ -191,7 +191,7 @@ def main():
         cells.append(md(heading))
         # special capture for film_list
         if (s.get('action') == 'http_get') and isinstance(s.get('endpoint'), str) and 'film_list' in s['endpoint']:
-            c = f"""
+            c = """
 url = PROXY_BASE + "{endpoint}"
 r = requests.get(url, headers=dict(**PROXY_HEADERS, **{{'Accept-Profile': SCHEMA_NAME}}))
 print(r.status_code)
