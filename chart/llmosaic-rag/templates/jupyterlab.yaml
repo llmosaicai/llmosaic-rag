@@ -48,6 +48,26 @@ spec:
           securityContext:
             runAsUser: 1000
             runAsGroup: 100
+          # Make selected values available to the init via env
+          env:
+            {{- with (index .Values "llmosaic-db").proxy }}
+            - name: PROXY_HOST
+              value: {{ .host | quote }}
+            {{- end }}
+            {{- with .Values.rag.llmapi.baseUrl }}
+            - name: LLMAPI_BASE
+              value: {{ . | quote }}
+            {{- end }}
+          # Pass through declared Secrets so write-env can dump them into .env
+          envFrom:
+          {{- range $s := .Values.jupyterlab.envFromSecrets | default (list) }}
+            - secretRef:
+                name: {{ $s | quote }}
+          {{- end }}
+          {{- with .Values.rag.llmapi.secretRef.name }}
+            - secretRef:
+                name: {{ . | quote }}
+          {{- end }}
           command: ["/bin/sh","-lc"]
           args:
             - |
@@ -123,10 +143,22 @@ EOF_{{ $i }}
             - name: NOTEBOOK_ARGS
               value: "--ServerApp.token='' --ServerApp.password=''"
             {{- end }}
+            {{- with (index .Values "llmosaic-db").proxy }}
+            - name: PROXY_HOST
+              value: {{ .host | quote }}
+            {{- end }}
+            {{- with .Values.rag.llmapi.baseUrl }}
+            - name: LLMAPI_BASE
+              value: {{ . | quote }}
+            {{- end }}
           envFrom:
           {{- range $s := .Values.jupyterlab.envFromSecrets | default (list) }}
             - secretRef:
                 name: {{ $s | quote }}
+          {{- end }}
+          {{- with .Values.rag.llmapi.secretRef.name }}
+            - secretRef:
+                name: {{ . | quote }}
           {{- end }}
           resources:
             {{- toYaml .Values.jupyterlab.resources | nindent 12 }}
