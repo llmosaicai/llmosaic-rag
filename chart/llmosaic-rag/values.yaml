@@ -30,9 +30,9 @@ jupyterlab:
     enabled: true
     source: image   # image|inline
     image: 148.153.46.195:30500/rag-examples:film-v4
+    notebooks: []   # used when source=inline (small content)
   envDump:
     enabled: true
-    notebooks: []   # used when source=inline (small content)
   resources:
     requests:
       cpu: 250m
