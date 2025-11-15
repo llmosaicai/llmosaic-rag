@@ -55,6 +55,13 @@
           },
           "additionalProperties": false
         },
+        "envDump": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
         "hostTemplate": { "type": "string" },
         "pvc": { "type": "object", "properties": { "size": { "type": "string" } }, "additionalProperties": false },
         "resources": { "type": "object" },
