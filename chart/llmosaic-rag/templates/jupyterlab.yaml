@@ -58,6 +58,10 @@ spec:
             - name: LLMAPI_BASE
               value: {{ . | quote }}
             {{- end }}
+            {{- range $e := .Values.jupyterlab.extraEnv | default (list) }}
+            - name: {{ $e.name | quote }}
+              value: {{ $e.value | quote }}
+            {{- end }}
           # Pass through declared Secrets so write-env can dump them into .env
           envFrom:
           {{- range $s := .Values.jupyterlab.envFromSecrets | default (list) }}
@@ -150,6 +154,10 @@ EOF_{{ $i }}
             {{- with .Values.rag.llmapi.baseUrl }}
             - name: LLMAPI_BASE
               value: {{ . | quote }}
+            {{- end }}
+            {{- range $e := .Values.jupyterlab.extraEnv | default (list) }}
+            - name: {{ $e.name | quote }}
+              value: {{ $e.value | quote }}
             {{- end }}
           envFrom:
           {{- range $s := .Values.jupyterlab.envFromSecrets | default (list) }}

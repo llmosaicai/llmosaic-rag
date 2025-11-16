@@ -37,6 +37,10 @@ jupyterlab:
     notebooks: []   # used when source=inline (small content)
   envDump:
     enabled: true
+  # Optional extra environment variables injected into both the write-env init
+  # container and the main Jupyter container. Useful for passing non-secret
+  # defaults (e.g., EMBED_NAME/MODEL, LLM_NAME/MODEL, SCHEMA_NAME, USER_EMAIL)
+  extraEnv: []
   resources:
     requests:
       cpu: 250m

@@ -62,6 +62,18 @@
           },
           "additionalProperties": false
         },
+        "extraEnv": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "value": { "type": "string" }
+            },
+            "required": ["name","value"],
+            "additionalProperties": false
+          }
+        },
         "hostTemplate": { "type": "string" },
         "pvc": { "type": "object", "properties": { "size": { "type": "string" } }, "additionalProperties": false },
         "resources": { "type": "object" },
