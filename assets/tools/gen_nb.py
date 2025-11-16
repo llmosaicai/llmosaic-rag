@@ -27,7 +27,7 @@ LLMAPI_BASE = os.environ.get('LLMAPI_BASE', 'https://llmapi6.llmosaic.ai')
 EMBED_NAME = os.environ.get('EMBED_NAME', 'titan-embed-text-v2')
 EMBED_MODEL = os.environ.get('EMBED_MODEL', 'titan-embed-text-v2')
 LLM_NAME = os.environ.get('LLM_NAME', 'gpt-oss-120b')
-LLM_MODEL = os.environ.get('LLM_MODEL', 'gpt-oss-120b')
+LLM_MODEL = os.environ.get('LLM_MODEL', LLM_NAME)
 
 assert PROXY_BASE, 'Set PROXY_BASE or PROXY_HOST in env/.env'
 
@@ -161,7 +161,7 @@ try:
 except Exception:
     pass
 prompt = ("{template}").replace("{{context}}", ctx).replace("{{question}}", "{question}")
-cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_MODEL, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
+cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_NAME, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
 print(cr.status_code)
 print(cr.text)
 """
