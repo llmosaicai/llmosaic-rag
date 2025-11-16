@@ -11,7 +11,11 @@ rag:
     baseUrl: https://llmapi6.llmosaic.ai
     # Reference to a Secret containing API keys or tokens for llmapi
     secretRef:
-      name: rag-llmapi
+      # Do not default to a secret name; the provisioner/profile will
+      # append any required secrets to jupyterlab.envFromSecrets.
+      # Leaving this empty avoids pod startup failures when no profile
+      # is selected and the Secret does not exist yet.
+      name: ""
       key: API_KEY
   # Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
   examples:
