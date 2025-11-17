@@ -75,16 +75,36 @@ print(r.text[:2000])
         ).format(endpoint=endpoint, hdr=hdr)
 
     if act == 'restore_backup':
-        # Upload an SQL backup file to the proxy restore-backup endpoint
+        # Upload an SQL backup file to the proxy restore-backup endpoint and poll for completion
         path = p.get('path', '/home/jovyan/work/examples/film_db_backup.sql')
         return ("""
 path = "{path}"
 url = PROXY_BASE + "/restore-backup?schemaName=" + SCHEMA_NAME
 with open(path, 'rb') as fh:
-    files = {'backup_file': ('film_db_backup.sql', fh, 'application/sql')}
+    files = {{'backup_file': ('film_db_backup.sql', fh, 'application/sql')}}
     r = requests.post(url, headers=PROXY_HEADERS, files=files)
 print(r.status_code)
 print(r.text[:2000])
+try:
+    jr = r.json()
+except Exception:
+    jr = {{}}
+# If job was accepted (async), poll for artifact log readiness
+if isinstance(jr, dict) and jr.get('status') == 'accepted' and jr.get('artifact_url'):
+    import time
+    artifact_url = PROXY_BASE + str(jr['artifact_url'])
+    print('Polling for restore completion:', artifact_url)
+    t0=time.time(); timeout=180; interval=3
+    while True:
+        rr = requests.get(artifact_url, headers=PROXY_HEADERS)
+        if rr.status_code == 200:
+            print('Restore log available (HTTP 200).')
+            print(rr.text[-1000:])
+            break
+        if time.time()-t0 > timeout:
+            print('Timed out waiting for restore completion log.')
+            break
+        time.sleep(interval)
 """
         ).format(path=path)
 
