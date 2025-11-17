@@ -29,7 +29,7 @@ variables:
     inject:
       write_env: true
 
-  # ---- LLM API access ----
+  # ---- LLM API access (auto from owner keys) ----
   - name: LLMAPI_BASE
     description: Base URL for the LLM API gateway (embed + chat endpoints).
     secret: false
@@ -43,13 +43,60 @@ variables:
         - name: jupyterlab
           env: LLMAPI_BASE
 
-  - name: LLMAPI_API_KEY
-    description: API key for the LLM API gateway.
+  - name: LLMAPI_ACCESS_KEY_ID
+    description: Access key id for LLM API (non-secret).
+    secret: false
+    auto: true
+    inject:
+      write_env: true
+
+  - name: LLMAPI_SECRET_ACCESS_KEY
+    description: Secret access key for LLM API.
     secret: true
     auto: true
-    source:
-      type: backend
-      key: user_llm_api_key
+    k8s:
+      secretRef:
+        name: rag-llmapi
+        key: SECRET_ACCESS_KEY
+    inject:
+      write_env: true
+      envFromSecrets:
+        - rag-llmapi
+
+  - name: LLMAPI_MODEL_NAMES
+    description: Comma-separated list of chat model names enabled by the access key.
+    secret: false
+    auto: true
+    inject:
+      write_env: true
+
+  - name: LLMAPI_COMPLETION_MODEL
+    description: Default chat completion model (first in LLMAPI_MODEL_NAMES when auto).
+    secret: false
+    auto: true
+    inject:
+      write_env: true
+
+  - name: LLMAPI_EMBED_MODEL
+    description: Embedding model name (e.g., titan-embed-text-v2).
+    secret: false
+    auto: true
+    default: titan-embed-text-v2
+    inject:
+      write_env: true
+
+  - name: LLMAPI_VECTOR_DIMENSION
+    description: Embedding vector dimension for the selected embed model.
+    secret: false
+    auto: true
+    default: 1024
+    inject:
+      write_env: true
+
+  - name: LLMAPI_API_KEY
+    description: Token for chat (/completions): AKID:SECRET:LLMAPI_COMPLETION_MODEL.
+    secret: true
+    auto: true
     k8s:
       secretRef:
         name: rag-llmapi
@@ -59,27 +106,24 @@ variables:
       envFromSecrets:
         - rag-llmapi
 
-  - name: EMBED_NAME
-    description: Embedding provider route (e.g., titan-embed-text-v2);
-    secret: false
+  - name: LLMAPI_EMBED_KEY
+    description: Token for embeddings (/embeddings): AKID:SECRET:LLMAPI_EMBED_MODEL.
+    secret: true
     auto: true
-    default: titan-embed-text-v2
+    k8s:
+      secretRef:
+        name: rag-llmapi
+        key: EMBED_KEY
     inject:
       write_env: true
+      envFromSecrets:
+        - rag-llmapi
 
-  - name: EMBED_MODEL
-    description: Embedding model identifier used by the LLM API.
-    secret: false
-    auto: true
-    default: titan-embed-text-v2
-    inject:
-      write_env: true
-
+  # Backward-compat alias used by older examples
   - name: LLM_NAME
-    description: Chat provider route (e.g., gpt-oss-120b).
+    description: Compat alias for LLMAPI_COMPLETION_MODEL.
     secret: false
     auto: true
-    default: gpt-oss-120b
     inject:
       write_env: true
 

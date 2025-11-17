@@ -79,7 +79,7 @@ spec:
               dest=/home/jovyan/work/.rag
               mkdir -p "$dest"
               {
-                printenv | grep -E '^(LLMAPI_BASE|LLMAPI_API_KEY|USER_EMAIL|STORAGE_ACCESS_KEY_ID|STORAGE_SECRET_ACCESS_KEY|PROXY_HOST|EMBED_NAME|EMBED_MODEL|LLM_NAME|LLM_MODEL|SCHEMA_NAME)='
+                printenv | grep -E '^(LLMAPI_BASE|LLMAPI_API_KEY|LLMAPI_EMBED_KEY|LLMAPI_ACCESS_KEY_ID|LLMAPI_SECRET_ACCESS_KEY|LLMAPI_MODEL_NAMES|LLMAPI_COMPLETION_MODEL|LLMAPI_EMBED_MODEL|LLMAPI_VECTOR_DIMENSION|USER_EMAIL|STORAGE_ACCESS_KEY_ID|STORAGE_SECRET_ACCESS_KEY|PROXY_HOST|LLM_NAME|SCHEMA_NAME)='
               } > "$dest/.env" || true
               chmod 600 "$dest/.env" || true
           volumeMounts:
