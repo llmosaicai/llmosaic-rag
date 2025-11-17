@@ -57,7 +57,7 @@ variables:
     k8s:
       secretRef:
         name: rag-llmapi
-        key: SECRET_ACCESS_KEY
+        key: LLMAPI_SECRET_ACCESS_KEY
     inject:
       write_env: true
       envFromSecrets:
@@ -100,7 +100,7 @@ variables:
     k8s:
       secretRef:
         name: rag-llmapi
-        key: API_KEY
+        key: LLMAPI_API_KEY
     inject:
       write_env: true
       envFromSecrets:
@@ -113,7 +113,7 @@ variables:
     k8s:
       secretRef:
         name: rag-llmapi
-        key: EMBED_KEY
+        key: LLMAPI_EMBED_KEY
     inject:
       write_env: true
       envFromSecrets:
