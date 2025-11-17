@@ -13,9 +13,10 @@ steps:
 
   - id: restore_backup
     title: Restore Film DB
-    purpose: Restore the film database from the preloaded SQL fixture.
-    action: http_get
-    endpoint: /restore-fixture?fixture=/artifacts/film_db_backup.sql
+    purpose: Restore the film database from the preloaded SQL fixture copied into Jupyter examples.
+    action: restore_backup
+    params:
+      path: /home/jovyan/work/examples/film_db_backup.sql
 
   - id: prep_film_texts
     title: Prepare Film Texts
@@ -77,4 +78,3 @@ steps:
       template: |
         Using the following film synopsis as context: "{{context}}", answer the question: "{{question}}"
       question: Which characters are central to the story?
-

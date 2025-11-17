@@ -74,6 +74,20 @@ print(r.text[:2000])
 """
         ).format(endpoint=endpoint, hdr=hdr)
 
+    if act == 'restore_backup':
+        # Upload an SQL backup file to the proxy restore-backup endpoint
+        path = p.get('path', '/home/jovyan/work/examples/film_db_backup.sql')
+        return ("""
+path = "{path}"
+url = PROXY_BASE + "/restore-backup?schemaName=" + SCHEMA_NAME
+with open(path, 'rb') as fh:
+    files = {'backup_file': ('film_db_backup.sql', fh, 'application/sql')}
+    r = requests.post(url, headers=PROXY_HEADERS, files=files)
+print(r.status_code)
+print(r.text[:2000])
+"""
+        ).format(path=path)
+
     if act == 'drop_table':
         table = p.get('table_name', 'items5')
         return ("""
