@@ -24,16 +24,19 @@ STORAGE_ACCESS_KEY_ID = os.environ.get('STORAGE_ACCESS_KEY_ID', '')
 STORAGE_SECRET_ACCESS_KEY = os.environ.get('STORAGE_SECRET_ACCESS_KEY', '')
 
 LLMAPI_BASE = os.environ.get('LLMAPI_BASE', 'https://llmapi6.llmosaic.ai')
-EMBED_NAME = os.environ.get('EMBED_NAME', 'titan-embed-text-v2')
-EMBED_MODEL = os.environ.get('EMBED_MODEL', 'titan-embed-text-v2')
-LLM_NAME = os.environ.get('LLM_NAME', 'gpt-oss-120b')
-LLM_MODEL = os.environ.get('LLM_MODEL', 'gpt-oss-120b')
+LLMAPI_MODEL_NAMES = os.environ.get('LLMAPI_MODEL_NAMES', '')
+LLMAPI_COMPLETION_MODEL = os.environ.get('LLMAPI_COMPLETION_MODEL', (LLMAPI_MODEL_NAMES.split(',')[0] if LLMAPI_MODEL_NAMES else 'gpt-oss-120b'))
+LLMAPI_EMBED_MODEL = os.environ.get('LLMAPI_EMBED_MODEL', 'titan-embed-text-v2')
+LLMAPI_VECTOR_DIMENSION = int(os.environ.get('LLMAPI_VECTOR_DIMENSION', '1024'))
+LLM_NAME = LLMAPI_COMPLETION_MODEL
+EMBED_NAME = LLMAPI_EMBED_MODEL
 
 assert PROXY_BASE, 'Set PROXY_BASE or PROXY_HOST in env/.env'
 
 AUTH_BEARER = f"{STORAGE_ACCESS_KEY_ID}:{STORAGE_SECRET_ACCESS_KEY}:storage" if STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY else ''
 PROXY_HEADERS = {'Authorization': f'Bearer {AUTH_BEARER}'} if AUTH_BEARER else {}
 LLM_HEADERS = {'Authorization': f'Bearer {os.environ.get("LLMAPI_API_KEY", "")}', 'Content-Type': 'application/json'}
+EMBED_HEADERS = {'Authorization': f'Bearer {os.environ.get("LLMAPI_EMBED_KEY", "")}', 'Content-Type': 'application/json'}
 
 print('Using PROXY_BASE=', PROXY_BASE)
 print('Using SCHEMA_NAME=', SCHEMA_NAME)
@@ -70,6 +73,20 @@ print(r.status_code)
 print(r.text[:2000])
 """
         ).format(endpoint=endpoint, hdr=hdr)
+
+    if act == 'restore_backup':
+        # Upload an SQL backup file to the proxy restore-backup endpoint
+        path = p.get('path', '/home/jovyan/work/examples/film_db_backup.sql')
+        return ("""
+path = "{path}"
+url = PROXY_BASE + "/restore-backup?schemaName=" + SCHEMA_NAME
+with open(path, 'rb') as fh:
+    files = {'backup_file': ('film_db_backup.sql', fh, 'application/sql')}
+    r = requests.post(url, headers=PROXY_HEADERS, files=files)
+print(r.status_code)
+print(r.text[:2000])
+"""
+        ).format(path=path)
 
     if act == 'drop_table':
         table = p.get('table_name', 'items5')
@@ -111,7 +128,7 @@ print(r.status_code, r.text)
         return ("""
 texts = {texts}
 for t in texts:
-    er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=LLM_HEADERS, json={{"model": EMBED_MODEL, "input": [t]}})
+    er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": [t]}})
     ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
     ir = requests.post(PROXY_BASE + "/{table}", headers=dict(**PROXY_HEADERS, **{{'Content-Type':'application/json', 'Content-Profile': SCHEMA_NAME}}), json={{"text": t, "embedding": vec}})
     print('insert', ir.status_code)
@@ -124,7 +141,7 @@ for t in texts:
 assert 'FILM_DOCS' in globals(), "Run 'Prepare Film Texts' step first"
 for i, t in enumerate(FILM_DOCS):
     fid = (FILM_IDS[i] if 'FILM_IDS' in globals() and i < len(FILM_IDS) else i+1)
-    er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=LLM_HEADERS, json={{"model": EMBED_MODEL, "input": [t]}})
+    er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": [t]}})
     ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
     ir = requests.post(PROXY_BASE + "/{table}", headers=dict(**PROXY_HEADERS, **{{'Content-Type':'application/json', 'Content-Profile': SCHEMA_NAME}}), json={{"film_id": fid, "document_text": t, "embedding": vec}})
     print('insert', fid, ir.status_code)
@@ -136,7 +153,7 @@ for i, t in enumerate(FILM_DOCS):
         qtext = p.get('query_text', '')
         lim = int(p.get('limit', 1))
         return ("""
-er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=LLM_HEADERS, json={{"model": EMBED_MODEL, "input": ["{qtext}"]}})
+er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": ["{qtext}"]}})
 ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
 encoded = requests.utils.quote(json.dumps(vec))
 qr = requests.get(PROXY_BASE + "/{table}?query_vector=" + encoded + "&vector_column=embedding&distance_operator=<=>&limit={lim}", headers=dict(**PROXY_HEADERS, **{{'Accept-Profile': SCHEMA_NAME}}))
@@ -161,7 +178,7 @@ try:
 except Exception:
     pass
 prompt = ("{template}").replace("{{context}}", ctx).replace("{{question}}", "{question}")
-cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_MODEL, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
+cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_NAME, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
 print(cr.status_code)
 print(cr.text)
 """
