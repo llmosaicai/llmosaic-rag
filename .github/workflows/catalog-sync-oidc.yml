@@ -1,0 +1,42 @@
+name: Catalog Sync (OIDC)
+
+on:
+  push:
+    branches: [ develop, main ]
+    paths:
+      - 'config/catalog.yaml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      BACKEND: https://api6.llmosaic.ai
+    steps:
+      - uses: actions/checkout@v4
+      - name: Request GitHub OIDC token (audience llmosaic)
+        id: idt
+        shell: bash
+        run: |
+          set -euo pipefail
+          RESP=$(curl -sS -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=llmosaic")
+          echo "$RESP" | jq -e .value >/dev/null
+          echo "ID_TOKEN=$(echo "$RESP" | jq -r .value)" >> "$GITHUB_OUTPUT"
+      - name: Post catalog to backend (OIDC)
+        shell: bash
+        env:
+          ID_TOKEN: ${{ steps.idt.outputs.ID_TOKEN }}
+        run: |
+          set -euo pipefail
+          jq -Rs '{catalog_yaml: ., stack_key: "llmosaic-rag"}' config/catalog.yaml > body.json
+          code=$(curl -sS -X POST "$BACKEND/api/v1/cicd/catalog/upsert-oidc" \
+            -H "Authorization: Bearer $ID_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data @body.json \
+            -o resp.json -w "%{http_code}")
+          echo "HTTP $code" && cat resp.json && echo
+          test "$code" -ge 200 -a "$code" -lt 300
+
