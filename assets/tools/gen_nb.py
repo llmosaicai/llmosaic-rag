@@ -35,8 +35,16 @@ assert PROXY_BASE, 'Set PROXY_BASE or PROXY_HOST in env/.env'
 
 AUTH_BEARER = f"{STORAGE_ACCESS_KEY_ID}:{STORAGE_SECRET_ACCESS_KEY}:storage" if STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY else ''
 PROXY_HEADERS = {'Authorization': f'Bearer {AUTH_BEARER}'} if AUTH_BEARER else {}
-LLM_HEADERS = {'Authorization': f'Bearer {os.environ.get("LLMAPI_API_KEY", "")}', 'Content-Type': 'application/json'}
-EMBED_HEADERS = {'Authorization': f'Bearer {os.environ.get("LLMAPI_EMBED_KEY", "")}', 'Content-Type': 'application/json'}
+LLM_HEADERS = {
+    'Authorization': f"Bearer {os.environ.get('LLMAPI_API_KEY', '')}",
+    'Content-Type': 'application/json'
+}
+_embed_key = (os.environ.get('LLMAPI_EMBED_KEY') or os.environ.get('LLMAPI_API_KEY') or '')
+EMBED_HEADERS = {
+    'Authorization': f"Bearer {_embed_key}",
+    'Content-Type': 'application/json'
+}
+print('Embed token present:', bool(_embed_key))
 
 print('Using PROXY_BASE=', PROXY_BASE)
 print('Using SCHEMA_NAME=', SCHEMA_NAME)
@@ -149,7 +157,15 @@ print(r.status_code, r.text)
 texts = {texts}
 for t in texts:
     er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": [t]}})
-    ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
+    if er.status_code != 200:
+        print('embed error', er.status_code, er.text[:500])
+        continue
+    try:
+        ej = er.json()
+    except Exception as e:
+        print('embed parse error', str(e), er.text[:500])
+        continue
+    vec = (ej.get('data') or [{{}}])[0].get('embedding')
     ir = requests.post(PROXY_BASE + "/{table}", headers=dict(**PROXY_HEADERS, **{{'Content-Type':'application/json', 'Content-Profile': SCHEMA_NAME}}), json={{"text": t, "embedding": vec}})
     print('insert', ir.status_code)
 """
@@ -162,7 +178,15 @@ assert 'FILM_DOCS' in globals(), "Run 'Prepare Film Texts' step first"
 for i, t in enumerate(FILM_DOCS):
     fid = (FILM_IDS[i] if 'FILM_IDS' in globals() and i < len(FILM_IDS) else i+1)
     er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": [t]}})
-    ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
+    if er.status_code != 200:
+        print('embed error', er.status_code, er.text[:500])
+        continue
+    try:
+        ej = er.json()
+    except Exception as e:
+        print('embed parse error', str(e), er.text[:500])
+        continue
+    vec = (ej.get('data') or [{{}}])[0].get('embedding')
     ir = requests.post(PROXY_BASE + "/{table}", headers=dict(**PROXY_HEADERS, **{{'Content-Type':'application/json', 'Content-Profile': SCHEMA_NAME}}), json={{"film_id": fid, "document_text": t, "embedding": vec}})
     print('insert', fid, ir.status_code)
 """
@@ -174,7 +198,14 @@ for i, t in enumerate(FILM_DOCS):
         lim = int(p.get('limit', 1))
         return ("""
 er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": ["{qtext}"]}})
-ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
+if er.status_code != 200:
+    print('embed error', er.status_code, er.text[:500])
+try:
+    ej = er.json(); vec = (ej.get('data') or [{{}}])[0].get('embedding')
+except Exception as e:
+    print('embed parse error', str(e), er.text[:500]); vec = None
+if not vec:
+    print('no embedding vector produced; check tokens and model name'); vec = []
 encoded = requests.utils.quote(json.dumps(vec))
 qr = requests.get(PROXY_BASE + "/{table}?query_vector=" + encoded + "&vector_column=embedding&distance_operator=<=>&limit={lim}", headers=dict(**PROXY_HEADERS, **{{'Accept-Profile': SCHEMA_NAME}}))
 print(qr.status_code)
