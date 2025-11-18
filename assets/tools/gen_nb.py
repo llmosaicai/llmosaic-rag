@@ -218,7 +218,9 @@ except Exception:
         ).format(table=table, qtext=qtext.replace('"', '\"'), lim=lim)
 
     if act == 'chat_with_context':
-        template = (p.get('template') or '').replace('\n', '\n')
+        # Convert Jinja-style placeholders to Python format placeholders for safe substitution
+        raw_tmpl = (p.get('template') or '')
+        fmt_tmpl = raw_tmpl.replace('{{', '{').replace('}}', '}')
         question = p.get('question', '')
         return ("""
 ctx = ''
@@ -228,12 +230,13 @@ try:
         ctx = first.get('data', {{}}).get('text') or first.get('document_text') or ''
 except Exception:
     pass
-prompt = ("{template}").replace("{{context}}", ctx).replace("{{question}}", "{question}")
+template = {tmpl}
+prompt = template.format(context=ctx, question={q})
 cr = requests.post(LLMAPI_BASE + "/" + LLM_NAME + "/v1/chat/completions", headers=LLM_HEADERS, json={{"model": LLM_NAME, "messages": [{{"role": "user", "content": prompt}}], "max_tokens": 256, "temperature": 0.7}})
 print(cr.status_code)
 print(cr.text)
 """
-        ).format(template=template.replace('"', '\"'), question=question.replace('"','\"'))
+        ).format(tmpl=json.dumps(fmt_tmpl), q=json.dumps(question))
 
     if act == 'http_get' and 'film_list' in endpoint:
         # handled by http_get + add capture
