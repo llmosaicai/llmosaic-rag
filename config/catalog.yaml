@@ -94,7 +94,7 @@ variables:
       write_env: true
 
   - name: LLMAPI_API_KEY
-    description: Token for chat (/completions): AKID:SECRET:LLMAPI_COMPLETION_MODEL.
+    description: "Token for chat (/completions): AKID:SECRET:LLMAPI_COMPLETION_MODEL."
     secret: true
     auto: true
     k8s:
@@ -107,7 +107,7 @@ variables:
         - rag-llmapi
 
   - name: LLMAPI_EMBED_KEY
-    description: Token for embeddings (/embeddings): AKID:SECRET:LLMAPI_EMBED_MODEL.
+    description: "Token for embeddings (/embeddings): AKID:SECRET:LLMAPI_EMBED_MODEL."
     secret: true
     auto: true
     k8s:
