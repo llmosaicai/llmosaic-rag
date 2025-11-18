@@ -164,4 +164,3 @@ notes:
   - The provisioner should auto-populate chart values and Secrets according to this catalog
     when a config profile is selected during deployment creation.
   - The Jupyter write-env init container writes a filtered subset into /home/jovyan/work/.rag/.env.
-  - sync check (rag) at 2025-11-18T04:20:39.871169Z
