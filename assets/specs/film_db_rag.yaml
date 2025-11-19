@@ -2,9 +2,15 @@ summary: |
   Restore the classic Film DB dataset, prepare film texts, embed + insert into
   a vector table, create a vector index, run semantic search, and chat using
   the retrieved context.
-default_schema: public
+default_schema: filmdata1
 
 steps:
+  - id: drop_schema
+    title: Drop Schema (if exists)
+    purpose: Ensure a clean schema before restore.
+    action: drop_schema
+    params:
+      if_exists: true
   - id: health_check
     title: Health Check
     purpose: Verify the tenant PostgREST-Proxy is reachable and ready.

@@ -116,6 +116,16 @@ if isinstance(jr, dict) and jr.get('status') == 'accepted' and jr.get('artifact_
 """
         ).format(path=path)
 
+    if act == 'drop_schema':
+        # Drop the current schema (from SCHEMA_NAME) if it exists
+        return ("""
+url = PROXY_BASE + "/drop-schema"
+body = {"schema_name": SCHEMA_NAME, "if_exists": True}
+r = requests.post(url, headers=dict(**PROXY_HEADERS, **{'Content-Type':'application/json'}), json=body)
+print(r.status_code, r.text)
+"""
+        )
+
     if act == 'drop_table':
         table = p.get('table_name', 'items5')
         return ("""
