@@ -184,7 +184,25 @@ for t in texts:
     if act == 'embed_and_insert_films':
         table = p.get('table_name', 'film_embeddings')
         return ("""
-assert 'FILM_DOCS' in globals(), "Run 'Prepare Film Texts' step first"
+if 'FILM_DOCS' not in globals() or not FILM_DOCS:
+    # Fallback: fetch film_list and prepare docs/ids
+    import json as _json
+    _fr = requests.get(PROXY_BASE + "/film_list?limit=" + str({limit}), headers=dict(**PROXY_HEADERS, **{{'Accept-Profile': SCHEMA_NAME}}))
+    try:
+        _rows = _fr.json() if _fr.ok else []
+    except Exception:
+        _rows = []
+    FILM_DOCS = []
+    FILM_IDS = []
+    for _r in (_rows or []):
+        _id = int(_r.get('film_id') or _r.get('id') or _r.get('fid') or 0)
+        _title = str(_r.get('title') or 'Untitled')
+        _year = (" (" + str(_r.get('release_year')) + ")" if _r.get('release_year') else '')
+        _desc = str(_r.get('description') or _r.get('plot') or _r.get('overview') or '')
+        _doc = (_title + _year + " — " + _desc).strip()
+        FILM_DOCS.append(_doc)
+        FILM_IDS.append(_id)
+assert 'FILM_DOCS' in globals() and FILM_DOCS, "Run 'Prepare Film Texts' step first"
 for i, t in enumerate(FILM_DOCS):
     fid = (FILM_IDS[i] if 'FILM_IDS' in globals() and i < len(FILM_IDS) else i+1)
     er = requests.post(LLMAPI_BASE + "/" + EMBED_NAME + "/v1/embeddings", headers=EMBED_HEADERS, json={{"model": EMBED_NAME, "input": [t]}})
@@ -200,7 +218,7 @@ for i, t in enumerate(FILM_DOCS):
     ir = requests.post(PROXY_BASE + "/{table}", headers=dict(**PROXY_HEADERS, **{{'Content-Type':'application/json', 'Content-Profile': SCHEMA_NAME}}), json={{"film_id": fid, "document_text": t, "embedding": vec}})
     print('insert', fid, ir.status_code)
 """
-        ).format(table=table)
+        ).format(table=table, limit=int(p.get('limit', 10)))
 
     if act == 'vector_query':
         table = p.get('table_name', 'items5')
