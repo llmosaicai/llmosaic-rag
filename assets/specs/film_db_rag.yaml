@@ -5,17 +5,17 @@ summary: |
 default_schema: filmdata1
 
 steps:
+  - id: health_check
+    title: Health Check
+    purpose: Verify the tenant PostgREST-Proxy is reachable and ready.
+    action: http_get
+    endpoint: /healthz
   - id: drop_schema
     title: Drop Schema (if exists)
     purpose: Ensure a clean schema before restore.
     action: drop_schema
     params:
       if_exists: true
-  - id: health_check
-    title: Health Check
-    purpose: Verify the tenant PostgREST-Proxy is reachable and ready.
-    action: http_get
-    endpoint: /healthz
 
   - id: restore_backup
     title: Restore Film DB
