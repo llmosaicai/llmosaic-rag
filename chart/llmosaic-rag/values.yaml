@@ -30,8 +30,6 @@ rag:
 jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
-  # Default schema to write into /home/jovyan/work/.rag/.env
-  defaultSchemaName: filmdata1
   preload:
     enabled: true
     source: image   # image|inline
@@ -42,9 +40,7 @@ jupyterlab:
   # Optional extra environment variables injected into both the write-env init
   # container and the main Jupyter container. Useful for passing non-secret
   # defaults (e.g., EMBED_NAME/MODEL, LLM_NAME/MODEL, SCHEMA_NAME, USER_EMAIL)
-  extraEnv:
-    - name: SCHEMA_NAME
-      value: filmdata1
+  extraEnv: []
   resources:
     requests:
       cpu: 250m
