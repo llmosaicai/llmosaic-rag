@@ -1,0 +1,4 @@
+version: 1
+example_vars:
+  film_db_rag:
+    SCHEMA_NAME: filmdata1

@@ -7,7 +7,7 @@ rag:
   examples:
     enabled: true
     source: image
-    image: 148.153.46.195:30500/rag-examples:film-v9
+    image: 148.153.46.195:30500/rag-examples:film-v10
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
 
@@ -16,4 +16,4 @@ jupyterlab:
   preload:
     enabled: true
     source: image
-    image: 148.153.46.195:30500/rag-examples:film-v9
+    image: 148.153.46.195:30500/rag-examples:film-v10
