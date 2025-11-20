@@ -20,10 +20,19 @@ rag:
   # Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
   examples:
     enabled: true
-    # Use an OCI image to seed /artifacts from /assets inside the image
-    source: image  # image|configmap|remote
-    image: 148.153.46.195:30500/rag-examples:film-v11
-    # For small files, you can also embed directly via configmap
+    # Prefer remote fetch of examples/specs (no assets image)
+    source: remote  # image|configmap|remote
+    remote:
+      files:
+        # Specs from GitHub main (raw)
+        - url: https://raw.githubusercontent.com/llmosaicai/llmosaic-rag/main/assets/specs/manifest.yaml
+          to: /artifacts/specs/manifest.yaml
+        - url: https://raw.githubusercontent.com/llmosaicai/llmosaic-rag/main/assets/specs/film_db_rag.yaml
+          to: /artifacts/specs/film_db_rag.yaml
+        # Notebook (optional): copy into artifacts; Jupyter can open from there
+        - url: https://raw.githubusercontent.com/llmosaicai/llmosaic-rag/main/assets/notebooks/film_db_rag.ipynb
+          to: /artifacts/notebooks/film_db_rag.ipynb
+    # For very small files, you can also embed directly via configmap
     files: []
 
 # Optional JupyterLab (moved from db stack)
@@ -31,9 +40,9 @@ jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
   preload:
-    enabled: true
-    source: image   # image|inline
-    image: 148.153.46.195:30500/rag-examples:film-v11
+    enabled: false
+    source: inline   # image|inline
+    image: ""
     notebooks: []   # used when source=inline (small content)
   envDump:
     enabled: true

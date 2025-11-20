@@ -107,6 +107,26 @@
             "enabled": { "type": "boolean" },
             "source": { "type": "string", "enum": ["configmap","image","remote"] },
             "image": { "type": "string" },
+            "remote": {
+              "type": "object",
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "url": { "type": "string" },
+                      "to": { "type": "string" },
+                      "sha256": { "type": "string" },
+                      "decompress": { "type": "string", "enum": ["none","gzip"] }
+                    },
+                    "required": ["url","to"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
             "files": {
               "type": "array",
               "items": {
