@@ -1,0 +1,51 @@
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "configmap")) "remote") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rag-examples-seed-remote
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: alpine:3.20
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              set -euo pipefail
+              apk add --no-cache curl coreutils
+              mkdir -p /artifacts/specs /artifacts/notebooks
+              # Download each remote file with optional sha256 and gzip decompress
+              {{- range $f := .Values.rag.examples.remote.files | default (list) }}
+              echo "[remote] fetching {{ $f.url }} -> {{ $f.to }}"
+              tmp="/tmp/remote.$RANDOM"
+              curl -fsSL {{ $f.url | quote }} -o "$tmp"
+              {{- if $f.sha256 }}
+              echo "{{ $f.sha256 }}  $tmp" | sha256sum -c -
+              {{- end }}
+              dest={{ $f.to | quote }}
+              mkdir -p "$(dirname "$dest")"
+              {{- if and $f.decompress (eq (lower $f.decompress) "gzip") }}
+              gzip -dc "$tmp" > "$dest"
+              {{- else }}
+              mv "$tmp" "$dest"
+              {{- end }}
+              {{- end }}
+              # Record provenance
+              {
+                echo "# Remote assets fetched";
+                {{- range $f := .Values.rag.examples.remote.files | default (list) }}
+                echo "{{ $f.to }} <- {{ $f.url }}";
+                {{- end }}
+              } > /artifacts/specs/ASSETS_REMOTE.txt
+              ls -l /artifacts /artifacts/specs || true
+          volumeMounts:
+            - name: artifacts
+              mountPath: /artifacts
+      volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: proxy-artifacts
+{{- end }}
