@@ -40,7 +40,9 @@ jupyterlab:
   # Optional extra environment variables injected into both the write-env init
   # container and the main Jupyter container. Useful for passing non-secret
   # defaults (e.g., EMBED_NAME/MODEL, LLM_NAME/MODEL, SCHEMA_NAME, USER_EMAIL)
-  extraEnv: []
+  extraEnv:
+    - name: SCHEMA_NAME
+      value: filmdata1
   resources:
     requests:
       cpu: 250m
