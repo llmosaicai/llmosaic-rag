@@ -284,6 +284,17 @@ def main():
     title = os.path.splitext(os.path.basename(out_path))[0].replace('_', ' ').title()
     cells.append(md(f"# {title}\n\nGenerated from spec: {os.path.basename(spec_path)}"))
     cells.append(code(SETUP_CODE))
+    # If the spec declares a default_schema, scope SCHEMA_NAME to that value for this notebook
+    try:
+        spec_default_schema = (spec.get('default_schema') or '').strip()
+    except Exception:
+        spec_default_schema = ''
+    if spec_default_schema:
+        cells.append(code(f"""
+# Scoped variable from spec: prefer example's default_schema over global .env
+SCHEMA_NAME = '{spec_default_schema}'
+print('Overriding SCHEMA_NAME from spec.default_schema ->', SCHEMA_NAME)
+"""))
 
     for s in spec.get('steps', []):
         heading = f"## {s.get('title') or s.get('id')}\n\n{(s.get('purpose') or '')}"
