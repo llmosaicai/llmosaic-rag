@@ -30,6 +30,8 @@ rag:
 jupyterlab:
   enabled: true
   image: jupyter/minimal-notebook:python-3.11
+  # Default schema to write into /home/jovyan/work/.rag/.env
+  defaultSchemaName: filmdata1
   preload:
     enabled: true
     source: image   # image|inline

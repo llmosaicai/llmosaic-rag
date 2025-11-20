@@ -58,6 +58,8 @@ spec:
             - name: LLMAPI_BASE
               value: {{ . | quote }}
             {{- end }}
+            - name: DEFAULT_SCHEMA_NAME
+              value: {{ .Values.jupyterlab.defaultSchemaName | default "filmdata1" | quote }}
             {{- range $e := .Values.jupyterlab.extraEnv | default (list) }}
             - name: {{ $e.name | quote }}
               value: {{ $e.value | quote }}
@@ -81,6 +83,12 @@ spec:
               {
                 printenv | grep -E '^(LLMAPI_BASE|LLMAPI_API_KEY|LLMAPI_EMBED_KEY|LLMAPI_ACCESS_KEY_ID|LLMAPI_SECRET_ACCESS_KEY|LLMAPI_MODEL_NAMES|LLMAPI_COMPLETION_MODEL|LLMAPI_EMBED_MODEL|LLMAPI_VECTOR_DIMENSION|USER_EMAIL|STORAGE_ACCESS_KEY_ID|STORAGE_SECRET_ACCESS_KEY|PROXY_HOST|LLM_NAME|SCHEMA_NAME)='
               } > "$dest/.env" || true
+              # Ensure SCHEMA_NAME is set to desired default
+              if grep -q '^SCHEMA_NAME=' "$dest/.env"; then
+                sed -i "s/^SCHEMA_NAME=.*/SCHEMA_NAME=${DEFAULT_SCHEMA_NAME}/" "$dest/.env"
+              else
+                echo "SCHEMA_NAME=${DEFAULT_SCHEMA_NAME}" >> "$dest/.env"
+              fi
               chmod 600 "$dest/.env" || true
           volumeMounts:
             - name: data
