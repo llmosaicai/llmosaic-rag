@@ -18,8 +18,12 @@ spec:
               set -euo pipefail
               mkdir -p /artifacts
               if [ -d /assets ]; then
+                # Clear prior specs/notebooks so order/content cannot remain stale across image updates
+                rm -rf /artifacts/specs || true
+                rm -rf /artifacts/notebooks || true
+                mkdir -p /artifacts/specs /artifacts/notebooks
                 cp -r /assets/* /artifacts/ || true
-                ls -l /artifacts
+                ls -l /artifacts || true
               else
                 echo "No /assets directory in image; nothing to seed." >&2
               fi
