@@ -105,28 +105,8 @@
           "type": "object",
           "properties": {
             "enabled": { "type": "boolean" },
-            "source": { "type": "string", "enum": ["configmap","image","remote","dvc"] },
+            "source": { "type": "string", "enum": ["dvc"] },
             "image": { "type": "string" },
-            "remote": {
-              "type": "object",
-              "properties": {
-                "files": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "url": { "type": "string" },
-                      "to": { "type": "string" },
-                      "sha256": { "type": "string" },
-                      "decompress": { "type": "string", "enum": ["none","gzip"] }
-                    },
-                    "required": ["url","to"],
-                    "additionalProperties": false
-                  }
-                }
-              },
-              "additionalProperties": false
-            },
             "dvc": {
               "type": "object",
               "properties": {
@@ -147,17 +127,6 @@
               },
               "additionalProperties": false
             },
-            "files": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "name": { "type": "string" },
-                  "content": { "type": "string" }
-                },
-                "required": ["name","content"],
-                "additionalProperties": false
-              }
             }
           },
           "additionalProperties": false

@@ -1,4 +1,4 @@
-{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "configmap")) "dvc") }}
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "dvc")) "dvc") }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -23,6 +23,9 @@ spec:
               set -euo pipefail
               pip install --no-cache-dir 'dvc[s3,azure]'
               mkdir -p /artifacts/specs /artifacts/notebooks
+              # Copy packaged small assets from ConfigMap into artifacts
+              install -D -m 0644 /cm/specs_manifest.yaml /artifacts/specs/manifest.yaml
+              install -D -m 0644 /cm/specs_film_db_rag.yaml /artifacts/specs/film_db_rag.yaml
               PROV=/artifacts/specs/ASSETS_REMOTE.txt
               echo "# DVC assets fetched" > "$PROV"
               {{- range $f := .Values.rag.examples.dvc.files | default (list) }}
@@ -38,8 +41,13 @@ spec:
           volumeMounts:
             - name: artifacts
               mountPath: /artifacts
+            - name: cm
+              mountPath: /cm
       volumes:
         - name: artifacts
           persistentVolumeClaim:
             claimName: proxy-artifacts
+        - name: cm
+          configMap:
+            name: rag-examples-files
 {{- end }}

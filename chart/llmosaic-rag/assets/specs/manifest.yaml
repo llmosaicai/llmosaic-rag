@@ -1,0 +1,10 @@
+version: 1
+tests:
+  - key: basic_rag
+    title: Basic RAG
+    spec: specs/basic_rag.yaml
+    summary: Health check, drop table, create table, vector index, insert rows, search, chat.
+  - key: film_db_rag
+    title: Film DB RAG
+    spec: specs/film_db_rag.yaml
+    summary: Restore Film DB, embed + insert, vector search, and chat.

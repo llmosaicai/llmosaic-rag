@@ -104,30 +104,7 @@ EOF_{{ $i }}
             - name: data
               mountPath: /home/jovyan/work
         {{- end }}
-        {{- if and .Values.jupyterlab.preload .Values.jupyterlab.preload.enabled (eq (lower (.Values.jupyterlab.preload.source | default "inline")) "image") (ne (default "" .Values.jupyterlab.preload.image) "") }}
-        - name: preload-notebooks-image
-          image: {{ .Values.jupyterlab.preload.image | quote }}
-          imagePullPolicy: IfNotPresent
-          securityContext:
-            runAsUser: 1000
-            runAsGroup: 100
-          command: ["/bin/sh","-c"]
-          args:
-            - |
-              set -euo pipefail
-              DEST=/home/jovyan/work/examples
-              mkdir -p "$DEST"
-              if [ -d /assets ]; then
-                # Copy all assets (notebooks, SQL fixtures, etc.) into examples
-                cp -rf /assets/* "$DEST/" 2>/dev/null || true
-                ls -l "$DEST" || true
-              else
-                echo "No /assets directory in preload image; nothing to copy." >&2
-              fi
-          volumeMounts:
-            - name: data
-              mountPath: /home/jovyan/work
-        {{- end }}
+        {{/* Removed preload-notebooks-image to eliminate assets image pathway */}}
       securityContext:
         runAsNonRoot: true
         fsGroup: 100
