@@ -56,6 +56,7 @@ rag:
     # DVC is the only supported mechanism for large assets.
     source: dvc  # dvc
     dvc:
+      envFromSecretName: github-pat
       # Set via dvc.files; repo_url should point to this repo and path to the DVC-tracked file
       files:
         - repo_url: https://github.com/llmosaicai/llmosaic-rag
