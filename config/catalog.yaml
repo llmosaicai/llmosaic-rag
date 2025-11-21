@@ -22,10 +22,10 @@ variables:
           env: PROXY_HOST
 
   - name: SCHEMA_NAME
-    description: PostgreSQL schema to use for RAG tables.
+    description: PostgreSQL schema to use for RAG tables. For the Film DB demo, this is scoped to 'filmdata1'.
     secret: false
     auto: true
-    default: public
+    default: filmdata1
     inject:
       write_env: true
 
