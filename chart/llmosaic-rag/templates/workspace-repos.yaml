@@ -33,6 +33,7 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.rag.examples.dvc.envFromSecretName | quote }}
+                optional: true
           {{- end }}
           command: ["/bin/sh","-lc"]
           args:
