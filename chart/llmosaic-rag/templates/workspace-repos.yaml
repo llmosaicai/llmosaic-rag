@@ -28,7 +28,8 @@ spec:
                 secretKeyRef:
                   name: github-pat
                   key: TOKEN
-                  optional: true
+                  # Require the Secret so private repo downloads work; pod will wait until Secret exists
+                  optional: false
           {{- /* No envFrom needed; we only use GITHUB_TOKEN directly when present */}}
           command: ["/bin/sh","-lc"]
           args:
