@@ -21,7 +21,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: clone
-          image: python:3.11-slim
+          image: alpine:3.19
           env:
             - name: GITHUB_TOKEN
               valueFrom:
@@ -29,37 +29,27 @@ spec:
                   name: github-pat
                   key: TOKEN
                   optional: true
-          {{- if and .Values.rag.examples .Values.rag.examples.dvc .Values.rag.examples.dvc.envFromSecretName }}
-          envFrom:
-            - secretRef:
-                name: {{ .Values.rag.examples.dvc.envFromSecretName | quote }}
-                optional: true
-          {{- end }}
+          {{- /* No envFrom needed; we only use GITHUB_TOKEN directly when present */}}
           command: ["/bin/sh","-lc"]
           args:
             - |
               set -euo pipefail
-              # Use IPv4 for apt to avoid IPv6 issues in some clusters
-              apt-get -o Acquire::ForceIPv4=true update -y && apt-get -o Acquire::ForceIPv4=true install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
-              pip install --no-cache-dir 'dvc[s3,azure]'
               mkdir -p /ws
+              fetch_repo() {
+                name="$1"; url="$2"; ref="${3:-main}"
+                echo "[fetch] $name from $url@$ref"
+                d="/ws/$name"; rm -rf "$d" && mkdir -p "$d"
+                base="$(echo "$url" | sed -n 's#https://github.com/\(.*\)/\(.*\)\.git#https://codeload.github.com/\1/\2#p; s#https://github.com/\(.*\)/\(.*\)$#https://codeload.github.com/\1/\2#p')"
+                tarurl="$base/tar.gz/refs/heads/$ref"
+                if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /tmp/${name}.tgz --header="Authorization: token ${GITHUB_TOKEN}" "$tarurl" || true; else wget -qO /tmp/${name}.tgz "$tarurl" || true; fi
+                tar -xzf /tmp/${name}.tgz -C "$d" --strip-components=1 || true
+              }
               {{- range $r := $ws.repos }}
-              echo "[clone] {{ $r.name }} from {{ $r.repo_url }}@{{ $r.repo_ref | default "main" }}"
-              d="/ws/{{ $r.name }}"
-              rm -rf "$d" && mkdir -p "$d"
-              AUTH_URL="{{ $r.repo_url }}"
-              if [ -n "${GITHUB_TOKEN:-}" ]; then
-                T=$(printf '%s' "${GITHUB_TOKEN}" | tr -d '\n')
-                AUTH_URL="${AUTH_URL/https:\/\//https:\/\/${T}:x-oauth-basic@}"
-              fi
-              git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} "$AUTH_URL" "$d" || git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} {{ $r.repo_url | quote }} "$d" || git clone {{ $r.repo_url | quote }} "$d"
+              fetch_repo {{ $r.name | quote }} {{ $r.repo_url | quote }} {{ $r.repo_ref | default "main" | quote }}
               {{- end }}
-              # Materialize DVC assets in llmosaic-rag repo if present
-              if [ -d "/ws/llmosaic-rag/.dvc" ]; then
-                echo "[dvc] pulling assets in llmosaic-rag"
-                (cd /ws/llmosaic-rag && dvc pull -q || dvc pull) || true
-                ls -l /ws/llmosaic-rag/assets || true
-              fi
+              # Download large SQL asset directly from GitHub Releases into repo assets
+              sqlurl="https://github.com/llmosaicai/llmosaic-rag/releases/download/v0.1.0/film_db_backup.sql"
+              if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /ws/llmosaic-rag/assets/film_db_backup.sql --header="Authorization: token ${GITHUB_TOKEN}" "$sqlurl" || true; else wget -qO /ws/llmosaic-rag/assets/film_db_backup.sql "$sqlurl" || true; fi
               ls -la /ws || true
           volumeMounts:
             - name: ws
