@@ -41,15 +41,13 @@ spec:
                 d="/ws/$name"; rm -rf "$d" && mkdir -p "$d"
                 base="$(echo "$url" | sed -n 's#https://github.com/\(.*\)/\(.*\)\.git#https://codeload.github.com/\1/\2#p; s#https://github.com/\(.*\)/\(.*\)$#https://codeload.github.com/\1/\2#p')"
                 tarurl="$base/tar.gz/refs/heads/$ref"
-                if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /tmp/${name}.tgz --header="Authorization: token ${GITHUB_TOKEN}" "$tarurl" || true; else wget -qO /tmp/${name}.tgz "$tarurl" || true; fi
-                tar -xzf /tmp/${name}.tgz -C "$d" --strip-components=1 || true
+                if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /tmp/${name}.tgz --header="Authorization: token ${GITHUB_TOKEN}" "$tarurl"; else wget -qO /tmp/${name}.tgz "$tarurl"; fi
+                tar -xzf /tmp/${name}.tgz -C "$d" --strip-components=1
               }
               {{- range $r := $ws.repos }}
               fetch_repo {{ $r.name | quote }} {{ $r.repo_url | quote }} {{ $r.repo_ref | default "main" | quote }}
               {{- end }}
-              # Download large SQL asset directly from GitHub Releases into repo assets
-              sqlurl="https://github.com/llmosaicai/llmosaic-rag/releases/download/v0.1.0/film_db_backup.sql"
-              if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /ws/llmosaic-rag/assets/film_db_backup.sql --header="Authorization: token ${GITHUB_TOKEN}" "$sqlurl" || true; else wget -qO /ws/llmosaic-rag/assets/film_db_backup.sql "$sqlurl" || true; fi
+              # Large SQL asset is delivered via DVC to /artifacts; do not fetch here
               ls -la /ws || true
           volumeMounts:
             - name: ws

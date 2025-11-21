@@ -114,9 +114,24 @@ EOF_{{ $i }}
           command: ["/bin/sh","-lc"]
           args:
             - |
-              set -e
-              # best-effort wait for clone job to complete
-              sleep 2
+              set -eu
+              # Wait for the workspace repo to appear and contain specs
+              MOUNT={{ .Values.rag.workspace.mounts.jupyterlab.mountPath | default "/home/jovyan/work/repos" | quote }}
+              REPO={{ ((index .Values "llmosaic-db").proxy.symlinkSpecsFromWorkspace.repoName | default "llmosaic-rag") | quote }}
+              TARGET="$MOUNT/$REPO/assets/specs"
+              echo "Waiting for workspace at: $TARGET"
+              tries=120
+              while [ $tries -gt 0 ]; do
+                if [ -d "$TARGET" ] && [ "$(ls -A "$TARGET" 2>/dev/null || true)" ]; then
+                  echo "Workspace ready: $TARGET"
+                  break
+                fi
+                tries=$((tries-1))
+                sleep 2
+              done
+              if [ $tries -le 0 ]; then
+                echo "Proceeding without specs; workspace not ready after wait"
+              fi
           volumeMounts:
             - name: workspace
               mountPath: {{ .Values.rag.workspace.mounts.jupyterlab.mountPath | default "/home/jovyan/work/repos" | quote }}
