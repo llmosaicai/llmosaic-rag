@@ -1,0 +1,8 @@
+frozen: true
+deps:
+- hash: md5
+  path: 
+    https://github.com/llmosaicai/llmosaic-rag/releases/download/v0.1.0/film_db_backup.sql
+outs:
+- hash: md5
+  path: film_db_backup.sql
