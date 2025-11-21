@@ -105,7 +105,7 @@
           "type": "object",
           "properties": {
             "enabled": { "type": "boolean" },
-            "source": { "type": "string", "enum": ["configmap","image","remote"] },
+            "source": { "type": "string", "enum": ["configmap","image","remote","dvc"] },
             "image": { "type": "string" },
             "remote": {
               "type": "object",
@@ -121,6 +121,26 @@
                       "decompress": { "type": "string", "enum": ["none","gzip"] }
                     },
                     "required": ["url","to"],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "dvc": {
+              "type": "object",
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "repo_url": { "type": "string" },
+                      "repo_ref": { "type": "string" },
+                      "path": { "type": "string" },
+                      "to": { "type": "string" }
+                    },
+                    "required": ["repo_url","path","to"],
                     "additionalProperties": false
                   }
                 }

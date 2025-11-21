@@ -20,8 +20,8 @@ rag:
   # Example artifacts (fixtures, notebooks, specs) to seed into postgrest-proxy /artifacts
   examples:
     enabled: true
-    # Prefer remote fetch of examples/specs (no assets image)
-    source: remote  # image|configmap|remote
+    # Prefer remote fetch of examples/specs and fixture (no assets image)
+    source: remote  # image|configmap|remote|dvc
     remote:
       files:
         # Specs from GitHub main (raw)
@@ -32,6 +32,10 @@ rag:
         # Notebook (optional): copy into artifacts; Jupyter can open from there
         - url: https://raw.githubusercontent.com/llmosaicai/llmosaic-rag/main/assets/notebooks/film_db_rag.ipynb
           to: /artifacts/notebooks/film_db_rag.ipynb
+        # Film DB SQL fixture published via GitHub Releases
+        - url: https://github.com/llmosaicai/llmosaic-rag/releases/download/v0.1.0/film_db_backup.sql
+          to: /artifacts/film_db_backup.sql
+          sha256: f5a03f7a91f61021315d13910d717e162a109fe5f0a8afe1a8cb5c632cff60d7
     # For very small files, you can also embed directly via configmap
     files: []
 
