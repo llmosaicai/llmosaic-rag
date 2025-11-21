@@ -6,14 +6,18 @@ llmosaic-db:
 rag:
   examples:
     enabled: true
-    source: image
-    image: 148.153.46.195:30500/rag-examples:film-v10
+    source: dvc
+    dvc:
+      files:
+        - repo_url: https://github.com/llmosaicai/llmosaic-rag
+          repo_ref: main
+          path: assets/film_db_backup.sql
+          to: /artifacts/film_db_backup.sql
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
 
 jupyterlab:
   enabled: true
   preload:
-    enabled: true
-    source: image
-    image: 148.153.46.195:30500/rag-examples:film-v10
+    enabled: false
+    source: inline
