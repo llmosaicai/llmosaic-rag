@@ -101,6 +101,40 @@
     "rag": {
       "type": "object",
       "properties": {
+        "workspace": {
+          "type": "object",
+          "properties": {
+            "pvc": {
+              "type": "object",
+              "properties": {
+                "size": { "type": "string" }
+              },
+              "additionalProperties": false
+            },
+            "repos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "repo_url": { "type": "string" },
+                  "repo_ref": { "type": "string" }
+                },
+                "required": ["name","repo_url"],
+                "additionalProperties": false
+              }
+            },
+            "mounts": {
+              "type": "object",
+              "properties": {
+                "jupyterlab": { "type": "object", "properties": { "enabled": {"type":"boolean"}, "mountPath": {"type":"string"} }, "additionalProperties": false },
+                "proxy": { "type": "object", "properties": { "enabled": {"type":"boolean"}, "mountPath": {"type":"string"} }, "additionalProperties": false }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
         "examples": {
           "type": "object",
           "properties": {

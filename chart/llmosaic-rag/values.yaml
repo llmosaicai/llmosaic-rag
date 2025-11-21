@@ -4,9 +4,37 @@ llmosaic-db:
   org: example
   pgadmin:
     enabled: true
+  proxy:
+    extraVolumes:
+      - name: workspace
+        persistentVolumeClaim:
+          claimName: workspace-repos
+    extraVolumeMounts:
+      - name: workspace
+        mountPath: /workspace/repos
 
 # RAG integration values
 rag:
+  workspace:
+    pvc:
+      size: 2Gi
+    repos:
+      - name: llmosaic-rag
+        repo_url: https://github.com/llmosaicai/llmosaic-rag
+        repo_ref: main
+      - name: llmosaic-db
+        repo_url: https://github.com/llmosaicai/llmosaic-db
+        repo_ref: main
+      - name: postgrest-proxy
+        repo_url: https://github.com/llmosaicai/postgrest-proxy
+        repo_ref: main
+    mounts:
+      jupyterlab:
+        enabled: true
+        mountPath: /home/jovyan/work/repos
+      proxy:
+        enabled: true
+        mountPath: /workspace/repos
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
     # Reference to a Secret containing API keys or tokens for llmapi

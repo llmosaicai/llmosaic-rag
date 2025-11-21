@@ -105,6 +105,19 @@ EOF_{{ $i }}
               mountPath: /home/jovyan/work
         {{- end }}
         {{/* Removed preload-notebooks-image to eliminate assets image pathway */}}
+        {{- if and .Values.rag.workspace .Values.rag.workspace.repos (gt (len .Values.rag.workspace.repos) 0) (and .Values.rag.workspace.mounts .Values.rag.workspace.mounts.jupyterlab .Values.rag.workspace.mounts.jupyterlab.enabled) }}
+        - name: wait-workspace
+          image: alpine:3.19
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              set -e
+              # best-effort wait for clone job to complete
+              sleep 2
+          volumeMounts:
+            - name: workspace
+              mountPath: {{ .Values.rag.workspace.mounts.jupyterlab.mountPath | default "/home/jovyan/work/repos" | quote }}
+        {{- end }}
       securityContext:
         runAsNonRoot: true
         fsGroup: 100
@@ -119,6 +132,13 @@ EOF_{{ $i }}
           volumeMounts:
             - name: data
               mountPath: /home/jovyan/work
+            {{- if and .Values.rag.workspace .Values.rag.workspace.mounts .Values.rag.workspace.mounts.jupyterlab .Values.rag.workspace.mounts.jupyterlab.enabled }}
+            - name: workspace
+              mountPath: {{ .Values.rag.workspace.mounts.jupyterlab.mountPath | default "/home/jovyan/work/repos" | quote }}
+            {{- end }}
+            # Mount proxy artifacts so notebooks can access /artifacts
+            - name: artifacts
+              mountPath: /artifacts
           env:
             {{- if .Values.jupyterlab.sso.enabled }}
             - name: NOTEBOOK_ARGS
@@ -151,6 +171,14 @@ EOF_{{ $i }}
         - name: data
           persistentVolumeClaim:
             claimName: jupyterlab-data
+        {{- if and .Values.rag.workspace .Values.rag.workspace.repos (gt (len .Values.rag.workspace.repos) 0) (and .Values.rag.workspace.mounts .Values.rag.workspace.mounts.jupyterlab .Values.rag.workspace.mounts.jupyterlab.enabled) }}
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: workspace-repos
+        {{- end }}
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: proxy-artifacts
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

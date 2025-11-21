@@ -1,0 +1,56 @@
+{{- $ws := .Values.rag.workspace -}}
+{{- if and $ws $ws.repos (gt (len $ws.repos) 0) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workspace-repos
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: {{ $ws.pvc.size | default "2Gi" }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: workspace-repos-clone
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: clone
+          image: alpine/git:latest
+          env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-pat
+                  key: TOKEN
+                  optional: true
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              set -euo pipefail
+              mkdir -p /ws
+              {{- range $r := $ws.repos }}
+              echo "[clone] {{ $r.name }} from {{ $r.repo_url }}@{{ $r.repo_ref | default "main" }}"
+              d="/ws/{{ $r.name }}"
+              rm -rf "$d" && mkdir -p "$d"
+              AUTH_URL="{{ $r.repo_url }}"
+              if [ -n "${GITHUB_TOKEN:-}" ]; then
+                T=$(printf '%s' "${GITHUB_TOKEN}" | tr -d '\n')
+                AUTH_URL="${AUTH_URL/https:\/\//https:\/\/${T}:x-oauth-basic@}"
+              fi
+              git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} "$AUTH_URL" "$d" || git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} {{ $r.repo_url | quote }} "$d" || git clone {{ $r.repo_url | quote }} "$d"
+              {{- end }}
+              ls -la /ws || true
+          volumeMounts:
+            - name: ws
+              mountPath: /ws
+      volumes:
+        - name: ws
+          persistentVolumeClaim:
+            claimName: workspace-repos
+{{- end }}
