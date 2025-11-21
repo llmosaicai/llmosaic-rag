@@ -84,7 +84,7 @@ print(r.text[:2000])
 
     if act == 'restore_backup':
         # Upload an SQL backup file to the proxy restore-backup endpoint and poll for completion
-        path = p.get('path', '/home/jovyan/work/examples/film_db_backup.sql')
+        path = p.get('path', '/artifacts/film_db_backup.sql')
         return ("""
 path = "{path}"
 url = PROXY_BASE + "/restore-backup?schemaName=" + SCHEMA_NAME
