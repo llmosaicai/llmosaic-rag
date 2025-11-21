@@ -1,0 +1,83 @@
+{{- /*
+Seed DVC-tracked example assets into the workspace PVC.
+
+Controls:
+  - .Values.rag.examples.enabled: boolean
+  - .Values.rag.examples.source: must be "dvc"
+  - .Values.rag.examples.dvc.envFromSecretName: Secret providing TOKEN for GitHub (default: github-pat)
+  - .Values.rag.examples.dvc.files: list of {repo_url, repo_ref, path, to}
+
+Behavior:
+  - Waits for the workspace repo to be present under /workspace/repos/<repoName>
+  - For each file entry, if a corresponding .dvc pointer exists in the workspace,
+    extracts the remote URL from the pointer and downloads it to the target path
+    within the workspace (skip if the target already exists).
+  - Does NOT overwrite existing files (preserves user edits on upgrade).
+*/ -}}
+{{- if and .Values.rag .Values.rag.examples .Values.rag.examples.enabled (eq (lower (.Values.rag.examples.source | default "dvc")) "dvc") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: examples-dvc-seed
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: alpine:3.19
+          env:
+            - name: REPO_NAME
+              value: {{ ((index .Values "llmosaic-db").proxy.symlinkSpecsFromWorkspace.repoName | default "llmosaic-rag") | quote }}
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ (index .Values.rag.examples.dvc | default dict).envFromSecretName | default "github-pat" | quote }}
+                  key: TOKEN
+                  optional: true
+          command: ["/bin/sh","-lc"]
+          args:
+            - |
+              set -euo pipefail
+              WS="/workspace/repos/${REPO_NAME}"
+              echo "[dvc-seed] waiting for workspace at: $WS"
+              tries=180
+              while [ $tries -gt 0 ]; do
+                if [ -d "$WS" ]; then break; fi
+                tries=$((tries-1)); sleep 2
+              done
+              if [ ! -d "$WS" ]; then echo "[dvc-seed] workspace not found; exiting"; exit 0; fi
+              # Helper to trim leading spaces
+              trim() { sed -e 's/^\s\+//'; }
+              # Download a single pointer if present; skip if target exists
+              download_pointer() {
+                rel_path="$1"  # e.g., assets/film_db_backup.sql
+                dest="$WS/$rel_path"
+                dvcf="$dest.dvc"
+                [ -f "$dest" ] && { echo "[dvc-seed] exists: $rel_path (skip)"; return 0; }
+                [ -f "$dvcf" ] || { echo "[dvc-seed] pointer missing: $rel_path.dvc (skip)"; return 0; }
+                url="$(awk '/^ *path:/{getline; print}' "$dvcf" | trim)"
+                if [ -z "${url}" ]; then echo "[dvc-seed] url missing in $rel_path.dvc (skip)"; return 0; fi
+                echo "[dvc-seed] fetching $url -> $rel_path"
+                mkdir -p "$(dirname "$dest")"
+                if [ -n "${GITHUB_TOKEN:-}" ]; then
+                  wget -O "$dest.tmp" --header="Authorization: token ${GITHUB_TOKEN}" --header="Accept: application/octet-stream" "$url"
+                else
+                  wget -O "$dest.tmp" --header="Accept: application/octet-stream" "$url"
+                fi
+                mv "$dest.tmp" "$dest"
+              }
+              {{- range $f := (index .Values.rag.examples "dvc").files | default (list) }}
+              download_pointer {{ $f.path | quote }}
+              {{- end }}
+              echo "[dvc-seed] done"
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace/repos
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: workspace-repos
+{{- end }}
+
