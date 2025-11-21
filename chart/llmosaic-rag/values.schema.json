@@ -145,6 +145,7 @@
               "type": "object",
               "properties": {
                 "envFromSecretName": { "type": "string" },
+                "dvcEnv": { "type": "object", "additionalProperties": true },
                 "files": {
                   "type": "array",
                   "items": {
