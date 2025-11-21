@@ -108,6 +108,9 @@ EOF_{{ $i }}
         {{- if and .Values.rag.workspace .Values.rag.workspace.repos (gt (len .Values.rag.workspace.repos) 0) (and .Values.rag.workspace.mounts .Values.rag.workspace.mounts.jupyterlab .Values.rag.workspace.mounts.jupyterlab.enabled) }}
         - name: wait-workspace
           image: alpine:3.19
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 100
           command: ["/bin/sh","-lc"]
           args:
             - |
