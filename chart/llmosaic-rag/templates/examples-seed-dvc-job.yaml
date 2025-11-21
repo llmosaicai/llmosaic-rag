@@ -17,6 +17,11 @@ spec:
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
+          {{- if and .Values.rag.examples.dvc .Values.rag.examples.dvc.envFromSecretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.rag.examples.dvc.envFromSecretName | quote }}
+          {{- end }}
           command: ["/bin/sh","-lc"]
           args:
             - |
