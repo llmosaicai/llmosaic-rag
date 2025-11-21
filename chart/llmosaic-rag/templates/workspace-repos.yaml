@@ -21,7 +21,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: clone
-          image: alpine/git:latest
+          image: python:3.11-slim
           env:
             - name: GITHUB_TOKEN
               valueFrom:
@@ -29,10 +29,17 @@ spec:
                   name: github-pat
                   key: TOKEN
                   optional: true
+          {{- if and .Values.rag.examples .Values.rag.examples.dvc .Values.rag.examples.dvc.envFromSecretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.rag.examples.dvc.envFromSecretName | quote }}
+          {{- end }}
           command: ["/bin/sh","-lc"]
           args:
             - |
               set -euo pipefail
+              apt-get update -y && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+              pip install --no-cache-dir 'dvc[s3,azure]'
               mkdir -p /ws
               {{- range $r := $ws.repos }}
               echo "[clone] {{ $r.name }} from {{ $r.repo_url }}@{{ $r.repo_ref | default "main" }}"
@@ -45,6 +52,12 @@ spec:
               fi
               git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} "$AUTH_URL" "$d" || git clone --depth 1 --branch {{ $r.repo_ref | default "main" | quote }} {{ $r.repo_url | quote }} "$d" || git clone {{ $r.repo_url | quote }} "$d"
               {{- end }}
+              # Materialize DVC assets in llmosaic-rag repo if present
+              if [ -d "/ws/llmosaic-rag/.dvc" ]; then
+                echo "[dvc] pulling assets in llmosaic-rag"
+                (cd /ws/llmosaic-rag && dvc pull -q || dvc pull) || true
+                ls -l /ws/llmosaic-rag/assets || true
+              fi
               ls -la /ws || true
           volumeMounts:
             - name: ws
