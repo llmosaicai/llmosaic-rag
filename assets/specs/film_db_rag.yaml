@@ -19,10 +19,10 @@ steps:
 
   - id: restore_backup
     title: Restore Film DB
-    purpose: Restore the film database from the preloaded SQL fixture copied into Jupyter examples.
+    purpose: Restore the film database from the SQL fixture seeded into the PostgREST-Proxy artifacts volume.
     action: restore_backup
     params:
-      path: /home/jovyan/work/examples/film_db_backup.sql
+      path: /artifacts/film_db_backup.sql
 
   - id: prep_film_texts
     title: Prepare Film Texts
