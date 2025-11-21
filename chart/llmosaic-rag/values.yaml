@@ -12,6 +12,11 @@ llmosaic-db:
     extraVolumeMounts:
       - name: workspace
         mountPath: /workspace/repos
+    symlinkSpecsFromWorkspace:
+      enabled: true
+      repoName: llmosaic-rag
+      srcRelative: assets/specs
+      destPath: /artifacts/specs
 
 # RAG integration values
 rag:
