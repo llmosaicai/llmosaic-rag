@@ -48,8 +48,6 @@ spec:
                 tries=$((tries-1)); sleep 2
               done
               if [ ! -d "$WS" ]; then echo "[dvc-seed] workspace not found; exiting"; exit 0; fi
-              # Helper to trim leading spaces
-              trim() { sed -e 's/^\s\+//'; }
               # Download a single pointer if present; skip if target exists
               download_pointer() {
                 rel_path="$1"  # e.g., assets/film_db_backup.sql
@@ -57,7 +55,8 @@ spec:
                 dvcf="$dest.dvc"
                 [ -f "$dest" ] && { echo "[dvc-seed] exists: $rel_path (skip)"; return 0; }
                 [ -f "$dvcf" ] || { echo "[dvc-seed] pointer missing: $rel_path.dvc (skip)"; return 0; }
-                url="$(awk '/^ *path:/{getline; print}' "$dvcf" | trim)"
+                # Extract the first https URL from the DVC pointer (handles multiline YAML)
+                url="$(grep -Eo 'https://[^[:space:]]+' "$dvcf" | head -n1)"
                 if [ -z "${url}" ]; then echo "[dvc-seed] url missing in $rel_path.dvc (skip)"; return 0; fi
                 echo "[dvc-seed] fetching $url -> $rel_path"
                 mkdir -p "$(dirname "$dest")"
@@ -80,4 +79,3 @@ spec:
           persistentVolumeClaim:
             claimName: workspace-repos
 {{- end }}
-
