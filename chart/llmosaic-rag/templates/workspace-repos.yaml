@@ -39,7 +39,8 @@ spec:
           args:
             - |
               set -euo pipefail
-              apt-get update -y && apt-get install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
+              # Use IPv4 for apt to avoid IPv6 issues in some clusters
+              apt-get -o Acquire::ForceIPv4=true update -y && apt-get -o Acquire::ForceIPv4=true install -y --no-install-recommends git ca-certificates && rm -rf /var/lib/apt/lists/*
               pip install --no-cache-dir 'dvc[s3,azure]'
               mkdir -p /ws
               {{- range $r := $ws.repos }}
