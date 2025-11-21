@@ -1,0 +1,10 @@
+{{- /* ConfigMap embedding small example files packaged with the chart */ -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rag-examples-files
+data:
+  specs_manifest.yaml: |
+{{ (.Files.Get "assets/specs/manifest.yaml") | indent 4 }}
+  specs_film_db_rag.yaml: |
+{{ (.Files.Get "assets/specs/film_db_rag.yaml") | indent 4 }}
