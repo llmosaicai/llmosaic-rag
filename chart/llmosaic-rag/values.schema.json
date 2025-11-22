@@ -113,6 +113,14 @@
                 "mountPath": { "type": "string" }
               },
               "additionalProperties": false
+            },
+            "ssh": {
+              "type": "object",
+              "properties": {
+                "fromClaims": { "type": "boolean" },
+                "authorizedKeys": { "type": "string" }
+              },
+              "additionalProperties": false
             }
           },
           "additionalProperties": false
