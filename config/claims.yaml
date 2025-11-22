@@ -2,3 +2,5 @@ version: 1
 secrets:
   - name: github-pat
     dataKeys: [TOKEN]
+  - name: devhost-ssh
+    dataKeys: [authorized_keys]
