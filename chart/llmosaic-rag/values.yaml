@@ -46,6 +46,9 @@ rag:
     mounts:
       enabled: true
       mountPath: /workspace/repos
+    ssh:
+      fromClaims: true
+      authorizedKeys: ""
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
     # Reference to a Secret containing API keys or tokens for llmapi
