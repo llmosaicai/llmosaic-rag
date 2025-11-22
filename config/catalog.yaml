@@ -119,6 +119,36 @@ variables:
       envFromSecrets:
         - rag-llmapi
 
+  # ---- Dev Host (VS Code over SSH) ----
+  - name: DEVHOST_ENABLED
+    description: Enable the llmosaic-dev-host SSH service (mounts workspace repos).
+    secret: false
+    auto: true
+    default: true
+    inject:
+      values:
+        path: rag.devHost.enabled
+
+  - name: DEVHOST_FROM_CLAIMS
+    description: If false, render Secret/devhost-ssh from values; if true, expect provisioner claims to supply the Secret.
+    secret: false
+    auto: true
+    default: false
+    inject:
+      values:
+        path: rag.devHost.ssh.fromClaims
+
+  - name: DEVHOST_SSH_AUTHORIZED_KEYS
+    description: Authorized public keys for the dev user (one per line). Auto-selects your first SSH key by default.
+    secret: false
+    auto: true
+    source:
+      type: backend
+      key: user_first_ssh_key
+    inject:
+      values:
+        path: rag.devHost.ssh.authorizedKeys
+
   # Backward-compat alias used by older examples
   - name: LLM_NAME
     description: Compat alias for LLMAPI_COMPLETION_MODEL.
