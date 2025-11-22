@@ -26,8 +26,7 @@ spec:
             - name: workspace
               mountPath: {{ $cfg.mounts.mountPath | default "/workspace/repos" | quote }}
             - name: authkeys
-              mountPath: /etc/ssh/authorized_keys
-              subPath: authorized_keys
+              mountPath: /etc/ssh/keys
           resources: {}
       volumes:
         - name: workspace
@@ -66,4 +65,3 @@ spec:
         - protocol: TCP
           port: 22
 {{- end }}
-
