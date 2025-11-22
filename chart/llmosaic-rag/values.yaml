@@ -40,6 +40,12 @@ rag:
       proxy:
         enabled: true
         mountPath: /workspace/repos
+  devHost:
+    enabled: false
+    image: 148.153.46.195:30500/llmosaic-dev-host:latest
+    mounts:
+      enabled: true
+      mountPath: /workspace/repos
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
     # Reference to a Secret containing API keys or tokens for llmapi

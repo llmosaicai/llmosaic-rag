@@ -1,0 +1,69 @@
+{{- $cfg := .Values.rag.devHost -}}
+{{- if and $cfg $cfg.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-host
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: dev-host }
+  template:
+    metadata:
+      labels: { app: dev-host }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 1000
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: dev-host
+          image: {{ $cfg.image | default "148.153.46.195:30500/llmosaic-dev-host:latest" | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 22
+          volumeMounts:
+            - name: workspace
+              mountPath: {{ $cfg.mounts.mountPath | default "/workspace/repos" | quote }}
+            - name: authkeys
+              mountPath: /etc/ssh/authorized_keys
+              subPath: authorized_keys
+          resources: {}
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: workspace-repos
+        - name: authkeys
+          secret:
+            secretName: devhost-ssh
+            items:
+              - key: authorized_keys
+                path: authorized_keys
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-host
+spec:
+  selector: { app: dev-host }
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 22
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dev-host-ingress
+spec:
+  podSelector:
+    matchLabels: { app: dev-host }
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 22
+{{- end }}
+
