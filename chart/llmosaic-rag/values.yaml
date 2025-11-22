@@ -41,13 +41,13 @@ rag:
         enabled: true
         mountPath: /workspace/repos
   devHost:
-    enabled: false
+    enabled: true
     image: 148.153.46.195:30500/llmosaic-dev-host:latest
     mounts:
       enabled: true
       mountPath: /workspace/repos
     ssh:
-      fromClaims: true
+      fromClaims: false
       authorizedKeys: ""
   llmapi:
     baseUrl: https://llmapi6.llmosaic.ai
