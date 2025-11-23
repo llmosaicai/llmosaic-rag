@@ -16,10 +16,17 @@ spec:
         runAsNonRoot: false
         fsGroup: 1000
         seccompProfile: { type: RuntimeDefault }
+      automountServiceAccountToken: false
       containers:
         - name: dev-host
           image: {{ $cfg.image | default "148.153.46.195:30500/llmosaic-dev-host:latest" | quote }}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
           ports:
             - containerPort: 22
           volumeMounts:
