@@ -13,7 +13,7 @@ spec:
       labels: { app: dev-host }
     spec:
       securityContext:
-        runAsNonRoot: true
+        runAsNonRoot: false
         fsGroup: 1000
         seccompProfile: { type: RuntimeDefault }
       containers:
