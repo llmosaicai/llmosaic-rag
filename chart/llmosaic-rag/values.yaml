@@ -23,8 +23,8 @@ rag:
   workspace:
     pvc:
       size: 2Gi
-    # cloneMode: tar|git — tar downloads from codeload (fast, no .git), git creates true clones so you can pull
-    cloneMode: tar
+    # cloneMode: tar|git — default to git so users can pull updates from JupyterLab or dev-host
+    cloneMode: git
     repos:
       - name: llmosaic-rag
         repo_url: https://github.com/llmosaicai/llmosaic-rag
