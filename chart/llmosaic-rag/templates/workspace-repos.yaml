@@ -70,6 +70,8 @@ spec:
               fi
               {{- end }}
               # Large SQL asset is delivered via DVC to /artifacts; do not fetch here
+              # Ensure dev user (uid/gid 1000) can write to the workspace repos
+              chown -R 1000:1000 /ws || true
               ls -la /ws || true
           volumeMounts:
             - name: ws
