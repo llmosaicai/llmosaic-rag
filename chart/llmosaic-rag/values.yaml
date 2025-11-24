@@ -23,6 +23,8 @@ rag:
   workspace:
     pvc:
       size: 2Gi
+    # cloneMode: tar|git — tar downloads from codeload (fast, no .git), git creates true clones so you can pull
+    cloneMode: tar
     repos:
       - name: llmosaic-rag
         repo_url: https://github.com/llmosaicai/llmosaic-rag

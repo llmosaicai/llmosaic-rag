@@ -31,12 +31,18 @@ spec:
                   # Public repos: token is optional; set optional: true
                   # For private repos, provide github-pat to enable authenticated downloads
                   optional: true
+            - name: CLONE_MODE
+              value: {{ ($ws.cloneMode | default "tar") | quote }}
           {{- /* No envFrom needed; we only use GITHUB_TOKEN directly when present */}}
           command: ["/bin/sh","-lc"]
           args:
             - |
               set -euo pipefail
               mkdir -p /ws
+              if [ "${CLONE_MODE:-tar}" = "git" ]; then
+                echo "[setup] installing git for clone mode"
+                apk add --no-cache git ca-certificates >/dev/null 2>&1 || true
+              fi
               fetch_repo() {
                 name="$1"; url="$2"; ref="${3:-main}"
                 echo "[fetch] $name from $url@$ref"
@@ -46,8 +52,22 @@ spec:
                 if [ -n "${GITHUB_TOKEN:-}" ]; then wget -qO /tmp/${name}.tgz --header="Authorization: token ${GITHUB_TOKEN}" "$tarurl"; else wget -qO /tmp/${name}.tgz "$tarurl"; fi
                 tar -xzf /tmp/${name}.tgz -C "$d" --strip-components=1
               }
+              clone_repo() {
+                name="$1"; url="$2"; ref="${3:-main}"
+                echo "[clone] $name from $url@$ref"
+                d="/ws/$name"; rm -rf "$d" && mkdir -p "$d"
+                auth_url="$url"
+                if [ -n "${GITHUB_TOKEN:-}" ]; then
+                  auth_url="$(echo "$url" | sed -E "s#https://github.com/#https://${GITHUB_TOKEN}:x-oauth-basic@github.com/#")"
+                fi
+                git clone --depth 1 --branch "$ref" "$auth_url" "$d"
+              }
               {{- range $r := $ws.repos }}
-              fetch_repo {{ $r.name | quote }} {{ $r.repo_url | quote }} {{ $r.repo_ref | default "main" | quote }}
+              if [ "${CLONE_MODE:-tar}" = "git" ]; then
+                clone_repo {{ $r.name | quote }} {{ $r.repo_url | quote }} {{ $r.repo_ref | default "main" | quote }}
+              else
+                fetch_repo {{ $r.name | quote }} {{ $r.repo_url | quote }} {{ $r.repo_ref | default "main" | quote }}
+              fi
               {{- end }}
               # Large SQL asset is delivered via DVC to /artifacts; do not fetch here
               ls -la /ws || true
