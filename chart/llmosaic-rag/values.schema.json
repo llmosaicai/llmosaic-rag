@@ -128,6 +128,7 @@
         "workspace": {
           "type": "object",
           "properties": {
+            "cloneMode": { "type": "string", "enum": ["tar","git"] },
             "pvc": {
               "type": "object",
               "properties": {
